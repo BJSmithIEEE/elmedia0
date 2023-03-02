@@ -1,0 +1,126 @@
+#-------------------------------------------------
+# INJECTED KICKSTART PRE GLOBALS/FUNCTIONS - BEGIN
+#-------------------------------------------------
+#set -ox
+
+## %pre - Globals
+export TLD_KS=""	# Top Level Directory (TLD) of Kickstart Media
+export DIR_KS=""	# Full Path to /ks Subdirectory under TLD
+export BLK_KS=""	# Backing Block Device of Kickstart Media
+export NET_KS=""	# 1st Network Device that is Up on System
+export DEV_KS=""	# 1st Block Device on System that is not Kickstart Media
+
+
+# Find kickstart media block device
+for d in /run/install/repo ; do
+	[ -d "${d}/ks" ] && export DIR_KS="${d}/ks" && export TLD_KS="${d}"
+	[ "${DIR_KS}" != "" ] && break
+done
+
+
+## %pre - Functions
+
+# fndInsDev - find the backing block device for the kickstart media
+#	ret = return string of device found, empty if not - e.g., sdb1 for uEFI USB, sr0 for ISO, etc...
+fndInsDev() {
+	local r=""
+	r="$(/bin/sed -n 's,^/dev/\([0-9A-Za-z_-]\+\)[ \t]\+'${TLD_KS}'[ \t]\+.*$,\1,p' /proc/mounts)"
+	echo "${r}"
+}
+
+# fndSysDev - find a device, in decreasing order of preference (first = most, last = least)
+#       $1  = root path under /sys -- e.g., 'block', 'class/net', etc...
+#       $2+ = list (space separated) of devices, in increasing order of preference - single quote (') each to preserve slashes and wildcards
+#       ret = return string of device found, empty if not
+fndSysDev() {
+        local P="$1"
+        shift
+        local L="$@"
+        local l=""
+        local r=""
+        local cwd="$(pwd)"
+        if [ "${P}" != "" ] ; then
+                cd "/sys/${P}"
+                for l in ${L} ; do
+                        if [ -d "${l}" ] ; then
+				case "${P}" in
+					'block')
+						# block - check if same as Media Block
+                                        	[ "${BLK_KS}" != "" ] && [[ "${BLK_KS}" != "${l}"* ]] && r="${l}"
+						;;
+					'class/net')
+                                        	# class/net - check if link is up
+	                                        [ -r "${l}/operstate" ] && [ "$(cat ${l}/operstate)" == "up" ] && r="${l}"
+						;;
+                                        *)
+                                                r="${l}"
+                                                ;;
+				esac
+                        	[ "${r}" != "" ] && break
+                        fi
+                done
+        fi
+        cd "${cwd}"
+        echo "${r}"
+}
+
+# mkIncFil - make dynamic/temporary kickstart include file /tmp/ks-${1}.inc from a list of snippet include file(s)
+#	$1  = base name of include file to create -- i.e., /tmp/ks-${1}.inc
+#	$2  = list (space separated) of include files under ${DEV_KS}/ks/include/ -- i.e., ${DEV_KS}/ks/include/ks-${DISTAG}-${1}-${2}.inc
+mkIncFil() {
+	local B="$1"
+	shift
+	local L="$@"
+        local l=""
+	local r=""
+        if [ "${B}" != "" ] ; then
+                # Empty an existing file and re-create - file must exist for Kickstart to work
+                echo "" > "/tmp/ks-${B}.inc"
+                # Look for DISTAG-specific file first (e.g., el8), then GENERIC next (e.g., elX)
+                for l in ${L} ; do
+                        if [ -r "${DIR_KS}/include/ks-${DISTAG}-${B}-${l}.inc" ] ; then
+                                cat "${DIR_KS}/include/ks-${DISTAG}-${B}-${l}.inc" >> "/tmp/ks-${B}.inc"
+                        elif [ -r "${DIR_KS}/include/ks-elX-${B}-${l}.inc" ] ; then
+                                cat "${DIR_KS}/include/ks-elX-${B}-${l}.inc" >> "/tmp/ks-${B}.inc"
+                        elif [ "${B}" == "30net" ] && [ "${l}" == "00el0_${NET_KS}" ] ; then
+                                # 30net - network device file not found, so use sed on generic eXXXXX file
+	                        if [ -r "${DIR_KS}/include/ks-${DISTAG}-${B}-00el0_eXXXXX.inc" ] ; then
+                                	cat "${DIR_KS}/include/ks-${DISTAG}-${B}-00el0_eXXXXX.inc" | sed -e "s/device[=]eXXXXX/device=${NET_KS}/g" >> "/tmp/ks-${B}.inc"
+	                        elif [ -r "${DIR_KS}/include/ks-elX-${B}-00el0_eXXXXX.inc" ] ; then
+                                	cat "${DIR_KS}/include/ks-elX-${B}-00el0_eXXXXX.inc" | sed -e "s/device[=]eXXXXX/device=${NET_KS}/g" >> "/tmp/ks-${B}.inc"
+                                fi
+                        elif [ "${B}" == "40dev" ] && [ "${l}" == "00el0_${DEV_KS}" ] ; then
+                                # 40dev - storage device file not found, so use sed on generic bXXXXX file
+	                        if [ -r "${DIR_KS}/include/ks-${DISTAG}-${B}-00el0_bXXXXX.inc" ] ; then
+	                                cat "${DIR_KS}/include/ks-${DISTAG}-${B}-00el0_bXXXXX.inc" | sed -e "s/driveorder[=]bXXXXX/driveorder=${DEV_KS}/g" -e "s/only-use=bXXXXX/only-use=${DEV_KS}/g" -e "s/drives=bXXXXX/drives=${DEV_KS}/g" >> "/tmp/ks-${B}.inc"
+	                        elif [ -r "${DIR_KS}/include/ks-elX-${B}-00el0_bXXXXX.inc" ] ; then
+	                                cat "${DIR_KS}/include/ks-elX-${B}-00el0_bXXXXX.inc" | sed -e "s/driveorder[=]bXXXXX/driveorder=${DEV_KS}/g" -e "s/only-use=bXXXXX/only-use=${DEV_KS}/g" -e "s/drives=bXXXXX/drives=${DEV_KS}/g" >> "/tmp/ks-${B}.inc"
+                                fi
+                        fi
+                        if [ "${B}" == "30net" ] && [ "${l}" == "00def" ] ; then 
+	                        # Pseudo-randomize hostname in the case of 00def (can be replaced in subsequent lines of additional files)
+        	                sed -i -e "s/hostname[ \t]\+elmedia0[ \t]\+$/hostname[ \t]*elmedia${RANDOM}/g" -e "s/hostname[ \t]\+elmedia0[.]random[.]local[ \t]*$/hostname elmedia${RANDOM}.random.local/g" "/tmp/ks-${B}.inc"
+        	        fi
+                done
+        fi
+}
+
+
+## %pre - Find Devices 
+export BLK_KS="$(fndInsDev)"
+export NET_KS="$(fndSysDev 'class/net' 'em*' 'eno*' 'eth*' 'ens*' 'p*p*' 'enp*' 'enx*')"
+export DEV_KS="$(fndSysDev 'block' md127 md126 md125 md124 md123 md122 md121 md120 md119 md118 'md?' 'nvme?n?' 'vd?' 'sd?')"
+# DEBUG-PRE
+echo -e ""
+echo -e "[ELMEDIA-PRE]\tMedia TLD:\t${TLD_KS}"
+echo -e "[ELMEDIA-PRE]\tMedia /ks:\t${DIR_KS}"
+echo -e "[ELMEDIA-PRE]\tMedia Block:\t$BLK_KS"
+echo -e "[ELMEDIA-PRE]\tSys 1st Netup:\t$NET_KS"
+echo -e "[ELMEDIA-PRE]\tSys 1st Block:\t${DEV_KS}"
+echo -e ""
+
+
+#-------------------------------------------------
+# INJECTED KICKSTART PRE GLOBALS/FUNCTIONS - END
+#-------------------------------------------------
+

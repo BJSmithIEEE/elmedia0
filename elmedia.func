@@ -1,0 +1,338 @@
+#	This file is to be sourced, NOT dircctly executed!
+#
+#	elmedia.func
+#	Functions for making uEFI Bootable USB devices (baremetal) and ISO images (virtualization)
+#	NOTE:  These functions are designed to work with Linux (even Busybox), and may work under Cygwin or even MinGW/MinSys
+
+
+#set -ox
+
+###	Set Umask to 002
+umask 002
+
+###	Globals
+gDt="$(date +%Y%b%d-%H%M%S)"
+let gAnsVer=29	# Ansible Version
+let gOver=0	# Overwrite USB distribution
+gSvrUri='http://softdist.mydomain.com'
+gSvrTar='pub/elmedia/tar'
+
+# Internal
+bOs="$(uname -o | tr [:upper:] [:lower:] | sed -e 's/gnu[/]//' 2>> /dev/null)"	# binary OS (e.g., linux, msys, et al.)
+bRsync="$(which rsync 2>> /dev/null)"		# Rsync command
+bCurl="$(which curl 2>> /dev/null)"		# curl command
+bMkiso="$(which mkisofs 2>> /dev/null)"		# mkisofs command
+bHyiso="$(which isohybrid 2>> /dev/null)"	# isohybrid command
+bTar="$(which tar 2>> /dev/null)"		# tar command
+bWmic="$(which wmic.exe 2>> /dev/null)"		# wmic.exe command (Windows)
+gVer=""			# Distribution Version -- e.g., 8
+gRelVer=""		# Distribution Release Version -- e.g., c8, r8
+
+###	Functions
+
+# getLabel - Attempt to get USB label on Linux and select Windows implementations
+#	$1	USB Mountpoint
+#	ret	Label(STDOUT)
+getLabel() {
+	local m="${1}"
+	local d=""
+	local d0=""
+	local l=""
+	local f=""
+	if [ "${bOs}" == "linux" ] ; then
+		# On Linux - use readlink to find device for mountpoint
+		if [ -x "/usr/bin/readlink" ] ; then
+			# Read /proc/mounts
+			d="$(sed -n 's,^\([^ \t]\+\)[ \t]\+'"$m"'[ \t]\+.*$,\1,p' /proc/mounts 2>> /dev/null)"
+			if [ "${d}" != "" ] ; then
+				echo -e "\tfound device(${d}) for mountpoint(${m})" >> /dev/stderr
+				for f in /dev/disk/by-label/* ; do
+					# On Linux - use readlink to find label in /dev/disk/by-label for device
+					d0=$(/usr/bin/readlink -f ${f})
+					if [ "${d}" == "${d0}" ] ; then
+						l="$(basename ${f})"
+					fi
+				done
+			fi
+		fi	
+	elif [ "${bOs}" == "msys" ] ; then
+		# On MSYS (under Windows) - use WMIC to list volumes and labels
+		if [ -x "${bWmic}" ] ; then
+			# Remove any leading '/cygdrive, then convert path to just the letters by removing slashes (/) -- e.g., drive letter
+			d="$(echo ${m} | sed -e 's/^[/]cygdrive//g' | sed -e 's/[/]//g' 2>> /dev/null)"
+			# WMIC volume list brief format will list label (5th) and drive letter (6th -- e.g., D:\)
+			l="$(${bWmic} volume list brief | awk '{ print $6 "\t" $5 }' | sed -n 's,'$d'[:]\\\t\(.*\)\+$,\1,ip' 2>> /dev/null)"
+		fi
+
+	fi
+	if [ "${l}" != "" ] ; then
+		echo -e "\tfound label(${l}) for device(${d})" >> /dev/stderr
+		echo "${l}"
+	fi
+}
+
+# getRelVer - Get source Distribution and Version release
+#	$1	source ISO (mounted)
+#	set	gVer - e.g., 7, 8 or 9
+#		gRelVer - e.g., c8=CentOS [Stream] 8, r7=Red Hat Enterprise Linux 7
+getRelVer() {
+	local s="${1}"
+	local r=""
+	local v=""
+	local t=""
+	echo -e "\treading Enterprise Linux ISO info file(${s}/.discinfo)" >> /dev/stderr
+	if [ -r "${s}/.discinfo" ] ; then
+		# Try finding CenTOS ... 
+		t="$(sed -n 's/^CentOS[^789]\+\([789]\).*/\1/ip' ${s}/.discinfo 2>> /dev/null)"
+		if [ "${t}" != "" ] ; then
+			r="c"
+			v="${t}"
+			echo -e "\t[${r}${v}] found Enterprise Linux release ${v} from Community ENTerprise OS (CentOS)" >> /dev/stderr
+		fi
+		if [ "${t}" == "" ] ; then
+			# Try finding Red Hat ... 
+			t="$(sed -n 's/^Red Hat[^789]\+\([789]\).*/\1/ip' ${s}/.discinfo 2>> /dev/null)"
+			if [ "${t}" != "" ] ; then
+				r="r"
+				v="${t}"
+				echo -e "\t[${r}${v}] found Enterprise Linux release ${v} from Red Hat (RHEL)" >> /dev/stderr
+			fi
+		fi
+		if [ "${t}" == "" ] ; then
+			# Try finding a X.Y version on is own line, and assume a CentOS-like downstream build ... 
+			t="$(sed -n 's/^\([789]\).[0-9][0-9]*$/\1/ip' ${s}/.discinfo 2>> /dev/null)"
+			if [ "${t}" != "" ] ; then
+				r="c"
+				v="${t}"
+				echo -e "\t[${r}${v}] found Enterprise Linux release ${v} from an unknown, downsream rebuild (assume CentOS compatible)" >> /dev/stderr
+			fi
+		fi	
+	else
+		echo -e "\nERROR(16): Cannot read file(${s}/.discinfo)" >> /dev/stderr
+		exit 16
+	fi
+	if [ "${v}" == "" ] ; then
+		echo -e "\nERROR(17): Read file(${s}/.discinfo), but could not determine Enterprise Linux major release" >> /dev/stderr
+		exit 17
+	else
+		gVer="${v}"
+		gRelVer="${r}${v}"
+	fi
+}
+
+# cpTree - Attempt to copy tree using rsync or copy
+#	$1	Source (must be a directory)
+#	$2	Destination (must be a directory)
+#	$3	[opt] 1 = overwrite (if rsync unavailable)
+#	$4	[opt] 1 = backup/move existing (if ${2} is a directory, but not a mount)
+cpTree() {
+	local s="${1}"
+	local d="${2}"
+	local f=0 ; [ "${3}" == "1" ] && let f=1
+	local b=0 ; [ "${3}" == "1" ] && [ "${4}" == "1" ] && let b=1
+	local n=""
+	local p=""
+	local ps="$(basename ${s})"
+	local pd="$(basename ${d})"
+	local t="$(date +%s)"
+	# Source must be a directory
+	if [ -d "${s}" ] ; then
+		# Destination must be a directory, or not exist
+		if [ -d "${d}" ] || [ ! -e "${d}" ] ; then
+			echo -e "\tdestination:  ${d}" >> /dev/stderr
+			# Backup/move existing flag, if directory, but not destination mount
+			if [ ${b} -eq 1 ] && [ -d "${d}" ] && [ "${myDst}" != "${d}" ] ; then
+				echo -e "\t     backup:  ${d}.${t}" >> /dev/stderr
+				mv -f "${d}" "${d}.${t}"
+			fi
+			# Create destination, if it does not exist ... 
+			if [ ! -e "${d}" ] ; then
+				echo -e "\t     create:  ${d}" >> /dev/stderr
+				mkdir -p "${d}"
+			fi
+			# Make destination writable
+			echo -e "\t   writable:  ${d}" >> /dev/stderr
+			[ "${bOs}" == "linux" ] && chmod -R u+w "${d}/"
+			# See if we're using rsync or not
+			if [ "${bRsync}" != "" ] ; then
+				echo -e "\tchecksum against Source via rsync binary (${bRsync}) ... " >> /dev/stderr
+			else
+				if [ ${f} -eq 1 ] ; then
+					echo -e "\tforce POSIX copy (cp -Rdfp), as rsync binary not found ... " >> /dev/stderr
+				else
+					echo -e "\tuse POSIX copy (cp -Rdnp), but don't overwrite, as rsync binary not found ... " >> /dev/stderr
+				fi
+			fi
+			# Use find to generate a list of null character terminated paths from source path, just immediate directory
+			find "${s}" -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' p ; do
+				if [ "${bRsync}" != "" ] ; then 
+					# Use rsync w/checksum to see if replacement is needed
+					echo -e "\t     dst:  \t${d}  \t<==(rsync/diff)==  \t${p}" >> /dev/stderr
+					${bRsync} -ac "${p}" "${d}/" 2>> /dev/null
+				else
+					# Use cp, and either force overwrite, or not, based on parameter
+					if [ ${f} -eq 1 ] ; then
+						echo -e "\t     dst:  \t${d}  \t<==(force/over)==  \t${p}" >> /dev/stderr
+						if [ "${bOs}" != "linux" ] ; then cp -Rdf "${p}" "${d}/"
+						else cp -Rdfp "${p}" "${d}/"
+						fi
+					else
+						echo -e "\t     dst:  \t${d}  \t<==(noclob/skip)==  \t${p}" >> /dev/stderr
+						if [ "${bOs}" != "linux" ] ; then cp -Rdn "${p}" "${d}/"
+						else cp -Rdnp "${p}" "${d}/"
+						fi
+					fi
+				fi
+			done
+			# Ensure destination writable
+			echo -e "\t   writable:  ${d}" >> /dev/stderr
+			[ "${bOs}" == "linux" ] && chmod -R u+w "${d}/"
+		fi
+	fi
+}
+
+# getFilTar - Get support tarball file and extract
+# 	$1	Destination to extract into (must be a directory)
+# 	$2	Tarball to pull (must be a tarball)
+# 	$3	If this file/directory (in destination) doesn't exist, get and extract tarball, otherwise skip
+getFilTar() {
+	local d="${1}"
+	local t="${2}"
+	local p="${3}"
+	# Destination must be a directory
+	if [ -d "${d}" ] ; then
+		if [ ! -e "${d}/${p}" ] ; then
+			# Tarball does not exist, attempt to pull from server
+			echo -e "\tpath(${d}/${p}) does not exist, get tarball(${t})" >> /dev/stderr
+			echo -e "\t  get(${gSvrUri}/${gSvrTar}/${t})" >> /dev/stderr
+			if [ "${bCurl}" != "" ] ; then
+				# Curl exists, attempt to pull from server
+				${bCurl} -fks "${gSvrUri}/${gSvrTar}/${t}" -o "${d}/${t}"
+				if [ -r "${d}/${t}" ] ; then
+					echo -e "\t    download successful" >> /dev/stderr
+				else
+					# Pull did not work, use older, static copy in './softdist/'
+					echo -e "\t    download NOT successful" >> /dev/stderr
+					if [ -r "softdist/${t}" ] ; then
+						echo -e "\t    using tarball included with elmedia" >> /dev/stderr
+						cp -p "softdist/${t}" "${d}/${t}"
+					fi
+				fi
+				if [ -r "${d}/${t}" ] ; then
+					echo -e "\t  extract(${d}/${t})" >> /dev/stderr
+					if [ "${bTar}" != "" ] ; then
+						${bTar} xC ${d}/ -f ${d}/${t}
+						echo -e "\t  path(${d}/${p})" >> /dev/stderr
+						if [ -e "${d}/${p}" ] ; then
+							echo -e "\t    validated" >> /dev/stderr
+						else
+							echo -e "\t    WARNING:  does NOT exist, media may be INCOMPLETE" >> /dev/stderr
+						fi
+					else
+						echo -e "\t    WARNING:  'tar' not installed, please manually extract and re-execute" >> /dev/stderr
+					fi
+				else
+					echo -e "\t    WARNING:  unable to locate tarball(${t})" >> /dev/stderr
+				fi
+			else
+				echo -e "\t    WARNING:  'curl' not installed, skipping" >> /dev/stderr
+			fi
+		else
+			echo -e "\tpath(${d}/${p}) already exists, skipping tarball(${t})" >> /dev/stderr
+		fi
+	fi
+}
+
+# getMnuGet - Get all menus from the New media
+# 	$1	Source
+#	out	$1/EFI/BOOT/ks-grubboot-menuentry.cfg
+#		$1/isolinux/ks-isolinux-label.cfg
+getMnuGet() {
+	local s="${1}"
+	local r=""
+	local rg="BOOT/grub.cfg"
+	local rg0="BOOT/ks_orig-menuentry_grub.cfg"
+	local ri="isolinux.cfg"
+	local ri0="ks_orig-label_isolinux.cfg"
+	# EFI/BOOT
+	echo -e "\tfind:  ${s}/EFI/${rg0}" >> /dev/stderr
+	r="$(cat ${s}/EFI/${rg0} 2>> /dev/null)"
+	if [ "${r}" != "" ] ; then
+		echo -e "\t\talready pre-read GRUB stanza(menuentry)" >> /dev/stderr
+	else
+		echo -e "\t\tdoes not exist / not valid ==> create new" >> /dev/stderr
+		echo -e "\tread:  ${s}/EFI/${rg}" >> /dev/stderr
+  	 	if [ -r "${s}/EFI/${rg}" ] ; then
+			# Read first menuentry stanza of 4 lines
+			sed -n '/^menuentry[ \t]\+/{p;n;p;n;p;n;p;q}' "${s}/EFI/${rg}" 2>> /dev/null > "${s}/EFI/${rg0}"
+		fi
+		r="$(cat ${s}/EFI/${rg0} 2>> /dev/null)"
+		if [ "${r}" != "" ] ; then
+			echo -e "\t\tread first GRUB stanza(menuentry), up to 4 lines" >> /dev/stderr
+		else
+			echo -e "\t\tWARNING:  cannot read!  (cannot modify menu!)" >> /dev/stderr
+		fi
+	fi
+	# isolinux
+	echo -e "\tfind:  ${s}/isolinux/${ri0}" >> /dev/stderr
+	r="$(cat ${s}/isolinux/${ri0} 2>> /dev/null)"
+	if [ "${r}" != "" ] ; then
+		echo -e "\t\talready pre-read isolinux stanza(label)" >> /dev/stderr
+	else
+		echo -e "\t\tdoes not exist / not valid ==> create new" >> /dev/stderr
+		echo -e "\tread:   ${s}/isolinux/${ri}" >> /dev/stderr
+  	 	if [ -r "${s}/isolinux/${ri}" ] ; then
+			# Read first menuentry stanza of 4 lines
+			sed -n '/^label[ \t]\+/{p;n;p;n;p;n;p;q}' "${s}/isolinux/${ri}" 2>> /dev/null > "${s}/isolinux/${ri0}"
+		fi
+		r="$(cat ${s}/isolinux/${ri0} 2>> /dev/null)"
+		if [ "${r}" != "" ] ; then
+			echo -e "\t\tread first isolinux stanza(label), up to 4 lines" >> /dev/stderr
+		else
+			echo -e "\t\tWARNING:  cannot read!  (cannot modify menu!)" >> /dev/stderr
+		fi
+	fi
+}	
+
+# getMnuKsf - Get Kickstart Meta from Files for Menu
+# 	$1	Destination (also source of existing or already copied Kickstart files)
+#getMnuGet() {
+#	local d="${1}"
+#}
+
+# genMnuKse - Generate Kickstart Menu Entries
+# 	$1	Destination (also source of existing or already copied Kickstart files)
+#getMnuKse() {
+#	local d="${1}"
+#}
+
+# setMnuLbl - Set/Replace ISO/USB default label with ISO/USB label
+#	$1	Desitination (also source of existing or already copied Kickstart files)
+#	$2	ISO/USB Label
+#	$3	Default Label
+setMnuLbl() {
+	local d="${1}"
+	local n="${2}"
+	local o="${3}"
+	local p=""
+	local a="EFI/BOOT/BOOT.conf EFI/BOOT/grub.cfg isolinux/isolinux.cfg"
+	if [ "${o}" != "" ] && [ "${n}" != "" ] ; then
+		if [ "${n}" != "${o}" ] ; then
+			echo -e "\tfind(${o}) / replace(${n})" >> /dev/stderr
+			for f in ${a} ; do
+				p="${d}/${f}"
+				echo -en "\t  ${p}  " >> /dev/stderr
+				if [ -e "${p}" ] ; then
+					echo -e "" >> /dev/stderr
+					sed -i "s/${o}/${n}/g" "${p}"
+				else
+					echo -e "(NOT FOUND)" >> /dev/stderr
+				fi
+			done
+		else
+			echo -e "\t  existing(${o}) matches new(${n}), no changes needed" >> /dev/stderr
+
+		fi
+	fi
+}
+
