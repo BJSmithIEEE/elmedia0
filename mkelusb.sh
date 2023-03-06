@@ -10,16 +10,23 @@
 ###	Globals
 
 # Parameters
+myCwd="$(pwd)"
 myNam="$(basename ${0})"
 myDir="$(dirname ${0})"
-if [ "${1}" == "-f" ] ; then let gOver=1 ; shift ; fi ; myDst="${1}"
-if [ "${2}" == "-f" ] ; then let gOver=1 ; shift ; fi ; mySrc="${2}"
-if [ "${3}" == "-f" ] ; then let gOver=1 ; shift ; fi ; myLbl="${3}"
-if [ "${4}" == "-f" ] ; then let gOver=1 ; shift ; fi 
+myLbl="${3}"
+mySrc="${2}"
+myDst="${1}"
 
 
-###	Source Common Functions/Globals
+# Source Common Functions/Globals
 . ${myDir}/elmedia.func
+
+
+# Environment
+myPkg="addlpkgs ansible"		# Tarballs of Packages to Include
+myOpt="STIG TPS"			# Tarballs of Optional Files to Include
+gOver=1					# Always copy/overwrite by default
+
 
 
 ###	Functions
@@ -38,6 +45,7 @@ outSyntax() {
 	echo -e "\t${myNam}  /f           /d            [R8ELMEDIA]       <== e.g., MinGW/Git Bash" >> /dev/stderr
 	echo -e "\n"
 }
+
 
 
 ### MAIN
@@ -73,56 +81,55 @@ if [ "${myLbl}" == "" ] ; then
 fi
 echo -e "\tusing label(${myLbl})"
 
+# Copy distribution - This is the most time consuming, unless the distribution is already on the media
 echo -e "\n${myNam}:\tCheck Destination USB against Source ISO"
 cpTree  "${mySrc}"  "${myDst}"  ${gOver}  0
 
-echo -e "\n${myNam}:\tGet Additional Packages (addlpkgs) Repo (if no local copy)"
-getFilTar "${myDir}" "addlpkgs.${gVer}-validated.tar" "addlpkgs.${gVer}/addlpkgs.${gRelVer}/repodata"
+# NOTE:  Always do these steps after the distribution - in case the directories already exist
 
-echo -e "\n${myNam}:\tCopy Additional Packages (addlpkgs) Repo for Distribution"
-cpTree "${myDir}/addlpkgs.${gVer}/addlpkgs.${gRelVer}" "${myDst}/addlpkgs"  1  1
+# Packages not provided in distribution media but required in %packages
+for p in ${myPkg} ; do
+	echo -e "\n${myNam}:\tGet Packages (${p}) Repo (if no local copy)"
+	if [ "${p}" == "ansible" ] ; then
+		getFilTar "${myDir}" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}${gAnsVer}.${gRelVer}/repodata"
+		echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
+		cpTree "${myDir}/${p}.${gVer}/${p}${gAnsVer}.${gRelVer}" "${myDst}/${p}${gAnsVer}"  1  1
+	else
+		getFilTar "${myDir}" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}.${gRelVer}/repodata"
+		echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
+		cpTree "${myDir}/${p}.${gVer}/${p}.${gRelVer}" "${myDst}/${p}"  1  1
+	fi
+done
 
-echo -e "\n${myNam}:\tGet Ansible Repo (if no local copy)"
-getFilTar "${myDir}" "ansible.${gVer}-validated.tar" "ansible.${gVer}/ansible${gAnsVer}.${gRelVer}/repodata"
-
-echo -e "\n${myNam}:\tCopy Ansible Repo for Distribution"
-cpTree "${myDir}/ansible.${gVer}/ansible${gAnsVer}.${gRelVer}" "${myDst}/ansible${gAnsVer}"  1  1
-
-echo -e "\n${myNam}:\tGet Optional Files (if no local copy)"
-getFilTar "${myDir}" "opt.${gVer}-validated.tar" "opt.${gVer}/STIG"
-
-echo -e "\n${myNam}:\tGet Optional Third Party Software (TPS, if no local copy)"
-getFilTar "${myDir}" "opt_TPS.${gVer}-validated.tar" "opt.${gVer}/TPS"
-
-echo -e "\n${myNam}:\tCopy Optional Files for Distribution"
+# Optional files to add for %post
+for f in ${myOpt} ; do
+	echo -e "\n${myNam}:\tGet Optional (${f} Files (if no local copy)"
+	getFilTar "${myDir}" "opt_${f}.${gVer}-validated.tar" "opt.${gVer}/${f}"
+done
+echo -e "\n${myNam}:\tCopy All Optional Files for Distribution"
 cpTree "${myDir}/opt.${gVer}" "${myDst}/opt"  1  1
 
+# Kickstart files
 echo -e "\n${myNam}:\tCopy Kickstart Files"
 cpTree "${myDir}/ks" "${myDst}/ks"  1	1
-
 echo -e "\n${myNam}:\tInject Kickstart Files w/Globals-Functions"
 for f in ${myDst}/ks/ks-el*.ks ; do
 	sed -i '/^[ \t]*[#][ \t]\+XXXXX[ \t]\+INJECT_KSPRE[ \t]\+XXXXX[ \t]*$/r ks/inject/ks-elmedia.inject' ${f}
 done
 
+# Boot files
 echo -e "\n${myNam}:\tGet Boot Files"
 getMnuGet "${myDst}"
-
 # Dynamic Menu - TODO
-
 #echo -e "\n${myNam}:\tGet Kickstart Meta"
 #getMnuKsf "${myDst}"
-
 #echo -e "\n${myNam}:\tGenerate Kickstart Entries"
 #genMnuKse "${myDst}"
-
 # Static Menu - Interim/Temporary (hardcoded)
 echo -e "\n${myNam}:\tCopy Boot Files (hardcoded)"
 cpTree "${myDir}/hardcode/menu.${gRelVer}"  "${myDst}"  1  0
-
 # Menu - Set/Replace any USB default label with actual USB label
 echo -e "\n${myNam}:\tUpdate Boot Files for USB Label (${myLbl})"
 setMnuLbl "${myDst}" "${myLbl}" "${myLblDef}"
-
 
 

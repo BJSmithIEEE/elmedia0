@@ -1,4 +1,4 @@
-#	This file is to be sourced, NOT dircctly executed!
+#	This file is to be sourced, NOT directly executed!
 #
 #	elmedia.func
 #	Functions for making uEFI Bootable USB devices (baremetal) and ISO images (virtualization)

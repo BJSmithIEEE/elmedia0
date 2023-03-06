@@ -35,7 +35,6 @@ mkIncFil 20sec 00def 00el0_accts
 
 # 30net - Network - Defaults and DHCP
 mkIncFil 30net 00def 00el0_${NET_KS}
-# RANDOM HOSTNAME # echo -e "\nnetwork --hostname elmedia{$RANDOM}" >> /tmp/ks-30net.inc
 
 # 40dev - Device - Local Storage Device and Boot/Device Passwords/Encryption
 mkIncFil 40dev 00def 00el0_${DEV_KS}
@@ -52,8 +51,11 @@ mkIncFil 65pkg 00def ansible scc tpm2
 # 80add - Add-ons - Various add-ons
 mkIncFil 80add 00def
 
-# 90pst - Post - Optional Software and Post-Install
-mkIncFil 90pst 00def 00el0_home 00el0_sshsudo opt opt_TPS
+# 90pst - Post - Post-Install
+mkIncFil 90pst 00def 00el0_home 00el0_sshsudo
+
+# 95opt - Post - Optional Software
+mkIncFil 95opt STIG TPS
 
 
 # %pre - end
@@ -128,6 +130,7 @@ cat >> /var/log/anaconda/ks-script_elmedia-pre.log << "EOF"
 EOF
 
 %include /tmp/ks-90pst.inc
+%include /tmp/ks-95opt.inc
 
 %end
 

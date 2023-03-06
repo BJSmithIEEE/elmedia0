@@ -29,7 +29,7 @@ outSyntax() {
 	echo -e "\t1\tMUST pass '1' to execute" >> /dev/stderr
 	echo -e "\n\tMoves the following Tarballs:" >> /dev/stderr
 	# print out exact tarballs to move
-	for f in "${myDir}"/*.tar ; do 
+	for f in "${myDir}"/*.tar "${myDir}"/tmp/*.tar ; do 
 		echo -e "\t\t - ${f}" >> /dev/stderr
 	done
 	# print out exact subdirectories to move
@@ -57,7 +57,7 @@ else
 	
 	# Move old files
 	echo -e "\n${myNam}:\tMoving old Tarballs into backup subdirectory (${myDir}/old-${gDt})"
-	for f in "${myDir}"/*.tar ; do 
+	for f in "${myDir}"/*.tar "${myDir}"/tmp/*.tar  ; do 
 		if [ -f "${f}" ] ; then
 			echo -e "\t${myDir}/old-${gDt}\t<==(move)==\t${f}"
 			mv -f "${f}" "${myDir}/old-${gDt}"
