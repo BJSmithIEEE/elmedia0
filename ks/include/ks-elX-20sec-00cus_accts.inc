@@ -1,11 +1,12 @@
-### ks/include/ks-elX-20sec-00el0_accts.inc
+### ks/include/ks-elX-20sec-00cus_accts.inc (custom - change passwords, account names, even UIDs/GIDs)
 
 # IMPORTANT:
-#  - Default system users need to be UID >=1000 for remote SSH login
-#  - Default system users are located on root (/) in /homesys (home for local system) for two (2) reasons.
+#  - *CUSTOM* system users need to be UID >=1000 for remote SSH login
+#  - *CUSTOM* system users are located on root (/) in /homesys (home for local system) for two (2) reasons.
 #    1.  Guaranteed Local:    Does not conflict with any NFS or CIFS mounted /home, which may or may not have full SELinux contexts
 #    2.  Guaranteed Context:  Working automation/orchestration (e.g., ansible) with default 'exec' on root (/) and with full SELinux contexts
 #  - WARNING:  By default the /home file system will be mounted 'noexec' per DISA STIG and NIST CUI (and NFS mounted should as well)
+#  - IMPORTANT:  Must also match users in 90pst-00cus_sshsudo (see ks-elX-90pst-00cus_sshsudo.inc).
 
 # Default root account for Default-elmedia-Naught
 rootpw --iscrypted --lock $6$61MtJBCKiY2X6gpX$DAv9omcXhg98YfULmGqgsBkoBxPgcN.OZc3MaXVpK/BHVlQE3Sc8riduMZuTjYFMUOotBhY/s1pIG1A4u.1T50
