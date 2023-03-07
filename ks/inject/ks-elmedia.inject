@@ -71,6 +71,7 @@ mkIncFil() {
 	local B="$1"
 	shift
 	local L="$@"
+        local d=""
         local l=""
 	local r=""
         if [ "${B}" != "" ] ; then
@@ -82,24 +83,26 @@ mkIncFil() {
                                 cat "${DIR_KS}/include/ks-${DISTAG}-${B}-${l}.inc" >> "/tmp/ks-${B}.inc"
                         elif [ -r "${DIR_KS}/include/ks-elX-${B}-${l}.inc" ] ; then
                                 cat "${DIR_KS}/include/ks-elX-${B}-${l}.inc" >> "/tmp/ks-${B}.inc"
-                        elif [ "${B}" == "30net" ] && [ "${l}" == "00el0_${NET_KS}" ] ; then
+                        elif [ "${B}" == "30net" ] && [[ ${l} == *_${NET_KS} ]] ; then
                                 # 30net - network device file not found, so use sed on generic eXXXXX file
-	                        if [ -r "${DIR_KS}/include/ks-${DISTAG}-${B}-00el0_eXXXXX.inc" ] ; then
-                                	cat "${DIR_KS}/include/ks-${DISTAG}-${B}-00el0_eXXXXX.inc" | sed -e "s/device[=]eXXXXX/device=${NET_KS}/g" >> "/tmp/ks-${B}.inc"
-	                        elif [ -r "${DIR_KS}/include/ks-elX-${B}-00el0_eXXXXX.inc" ] ; then
-                                	cat "${DIR_KS}/include/ks-elX-${B}-00el0_eXXXXX.inc" | sed -e "s/device[=]eXXXXX/device=${NET_KS}/g" >> "/tmp/ks-${B}.inc"
+				d=$(echo ${l} | sed -e "s/_${NET_KS}$/_eXXXXX/g")
+	                        if [ -r "${DIR_KS}/include/ks-${DISTAG}-${B}-${d}.inc" ] ; then
+                                	cat "${DIR_KS}/include/ks-${DISTAG}-${B}-${d}.inc" | sed -e "s/device[=]eXXXXX/device=${NET_KS}/g" >> "/tmp/ks-${B}.inc"
+	                        elif [ -r "${DIR_KS}/include/ks-elX-${B}-${d}.inc" ] ; then
+                                	cat "${DIR_KS}/include/ks-elX-${B}-${d}.inc" | sed -e "s/device[=]eXXXXX/device=${NET_KS}/g" >> "/tmp/ks-${B}.inc"
                                 fi
-                        elif [ "${B}" == "40dev" ] && [ "${l}" == "00el0_${DEV_KS}" ] ; then
+                        elif [ "${B}" == "40dev" ] && [[ ${l} == *_${DEV_KS} ]] ; then
                                 # 40dev - storage device file not found, so use sed on generic bXXXXX file
-	                        if [ -r "${DIR_KS}/include/ks-${DISTAG}-${B}-00el0_bXXXXX.inc" ] ; then
-	                                cat "${DIR_KS}/include/ks-${DISTAG}-${B}-00el0_bXXXXX.inc" | sed -e "s/driveorder[=]bXXXXX/driveorder=${DEV_KS}/g" -e "s/only-use=bXXXXX/only-use=${DEV_KS}/g" -e "s/drives=bXXXXX/drives=${DEV_KS}/g" >> "/tmp/ks-${B}.inc"
-	                        elif [ -r "${DIR_KS}/include/ks-elX-${B}-00el0_bXXXXX.inc" ] ; then
-	                                cat "${DIR_KS}/include/ks-elX-${B}-00el0_bXXXXX.inc" | sed -e "s/driveorder[=]bXXXXX/driveorder=${DEV_KS}/g" -e "s/only-use=bXXXXX/only-use=${DEV_KS}/g" -e "s/drives=bXXXXX/drives=${DEV_KS}/g" >> "/tmp/ks-${B}.inc"
+				d=$(echo ${l} | sed -e "s/_${DEV_KS}$/_bXXXXX/g")
+	                        if [ -r "${DIR_KS}/include/ks-${DISTAG}-${B}-${d}.inc" ] ; then
+	                                cat "${DIR_KS}/include/ks-${DISTAG}-${B}-${d}.inc" | sed -e "s/driveorder[=]bXXXXX/driveorder=${DEV_KS}/g" -e "s/only-use=bXXXXX/only-use=${DEV_KS}/g" -e "s/drives=bXXXXX/drives=${DEV_KS}/g" >> "/tmp/ks-${B}.inc"
+	                        elif [ -r "${DIR_KS}/include/ks-elX-${B}-${d}.inc" ] ; then
+	                                cat "${DIR_KS}/include/ks-elX-${B}-${d}.inc" | sed -e "s/driveorder[=]bXXXXX/driveorder=${DEV_KS}/g" -e "s/only-use=bXXXXX/only-use=${DEV_KS}/g" -e "s/drives=bXXXXX/drives=${DEV_KS}/g" >> "/tmp/ks-${B}.inc"
                                 fi
                         fi
                         if [ "${B}" == "30net" ] && [ "${l}" == "00def" ] ; then 
 	                        # Pseudo-randomize hostname in the case of 00def (can be replaced in subsequent lines of additional files)
-        	                sed -i -e "s/hostname[ \t]\+elmedia0[ \t]\+$/hostname[ \t]*elmedia${RANDOM}/g" -e "s/hostname[ \t]\+elmedia0[.]random[.]local[ \t]*$/hostname elmedia${RANDOM}.random.local/g" "/tmp/ks-${B}.inc"
+        	                sed -i -e "s/hostname[ \t]\+elmedia0[ \t]*$/hostname elmedia${RANDOM}/g" -e "s/hostname[ \t]\+elmedia0[.]random[.]local[ \t]*$/hostname elmedia${RANDOM}.random.local/g" "/tmp/ks-${B}.inc"
         	        fi
                 done
         fi
