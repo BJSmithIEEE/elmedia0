@@ -36,7 +36,7 @@ mkIncFil 20sec 00def 00el0_accts
 # 30net - Network - Defaults and DHCP
 mkIncFil 30net 00def 00el0_${NET_KS}
 
-# 40dev - Device - Local Storage Device and Boot/Device Passwords/Encryption
+# 40dev - Device - Local Storage Device and GRUB Password
 mkIncFil 40dev 00def 00el0_${DEV_KS}
 # custom # mkIncFil 40dev 00def 00cus_${DEV_KS}
 
@@ -53,8 +53,9 @@ mkIncFil 65pkg 00def ansible deskdevel scc tpm2
 mkIncFil 80add 00def
 
 # 90pst - Post - Post-Install
-mkIncFil 90pst 00def 00el0_home 00el0_sshsudo deskdevel
-# custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo deskdevel
+mkIncFil 90pst 00def 00el0_home 00el0_sshsudo clevis_common dracut_clevis_none deskdevel
+# custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tpm2 deskdevel
+# custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tang deskdevel
 
 # 95opt - Post - Optional Software
 mkIncFil 95opt STIG TPS

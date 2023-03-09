@@ -55,11 +55,19 @@ EOF
 # We only do this for Default-elbuild-Naught vg1, so it will not work if the VG has changed
 l="$(vgs -qo pv_all --noheading vg1 | sed -n 's,^.*[/]dev[/]mapper[/]\(luks-[^ \t]\+\)[ \t]\+.*$,\1,p')"
 if [ "${l}" != "" ] ; then
-	sed -i 's,^[ \t]*GRUB_CMDLINE_LINUX=",GRUB_CMDLINE_LINUX="rd.luks.uuid='${l}' rd.lvm.vg=vg1 ,g' /etc/default/grub
-	# Regenerate GRUB2 for BIOS (grub2) of uEFI (grub2-efi) if /sys/firmware/efi exists
+	# Found LUKS backing for vg1
+	# Insert rd.luks.uuid=luks-XXXX if not in GRUB default (Anaconda should do this)
+	grep -qie "^[ \t]*GRUB_CMDLINE_LINUX.*rd.luks.uuid=${l}.*$"
+	[ $? -ne 0 ] &&	sed -i 's,^[ \t]*GRUB_CMDLINE_LINUX=",GRUB_CMDLINE_LINUX="rd.luks.uuid='${l}' ,g' /etc/default/grub
+	# Insert rd.lvm.vg=vg1 if not in GRUB default (Anaconda typically does *NOT* do this for LVM on LUKS, so add it, removes the need to have all rd.lvm.lv= entries)
+	grep -qie "^[ \t]*GRUB_CMDLINE_LINUX.*rd.lvm.vg=vg1.*$"
+	[ $? -ne 0 ] &&	sed -i 's,^[ \t]*GRUB_CMDLINE_LINUX=",GRUB_CMDLINE_LINUX="rd.lvm.vg=vg1 ,g' /etc/default/grub
+	# Regenerate GRUB2
 	if [ -d "/sys/firmware/efi" ] ; then
+		# for uEFI (/etc/grub2-efi.cfg = /boot/efi/EFI/redhat/grub.cfg) if /sys/firmware/efi exists
 		grub2-mkconfig -o /etc/grub2-efi.cfg
 	else
+		# for BIOS (/etc/grub2.cfg = /boot/grub2/grub.cfg) if /sys/firmware/efi does *NOT* exist
 		grub2-mkconfig -o /etc/grub2.cfg
 	fi
 fi
