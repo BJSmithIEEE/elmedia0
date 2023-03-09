@@ -15,7 +15,7 @@ cat << EOF > /etc/dracut.conf.d/99-clevis-options.conf
 # NO NONE # omit_dracutmodules+=" clevis ifcfg network "
 
 ## clevis_tang - Clevis via network to tang server, but don't interfere with normal NetworkManager (omit ifcfg)
-# NO TANG # omit_dracutmodules+=" ifcfg "
+omit_dracutmodules+=" ifcfg "
 
 ## clevis_tpm2 - Clevis via TPM2 chip (omit ifcfg network)
 # NO TPM2 # omit_dracutmodules+=" ifcfg network "
