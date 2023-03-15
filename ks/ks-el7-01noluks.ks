@@ -53,9 +53,8 @@ mkIncFil 65pkg 00def ansible scc tpm2
 mkIncFil 80add 00def
 
 # 90pst - Post - Post-Install (no LUKS, so no Clevis)
-mkIncFil 90pst 00def 00el0_home 00el0_sshsudo
-# custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo
-# custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo
+mkIncFil 90pst 00def 00el0_home 00el0_sshsudo dracut_clevis_none
+# custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo dracut_clevis_none
 
 # 95opt - Post - Optional Software
 mkIncFil 95opt STIG TPS
