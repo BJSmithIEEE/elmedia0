@@ -13,21 +13,21 @@ echo -e "\n# uncomment/modify for 2nd LUKS volume, non-root # name_under-dev_map
 
 ## DRACUT (config) - /etc/dracut.conf.d/99-kcs4500491.conf
 # Embed rd.luks.uuid, rd.lvm.lv and rd.lvm.vg from GRUB2 into initramfs per Red Hat Article 4500491
-cat << EOF > /etc/dracut.conf.d/99-kcs4500491.conf
+cat << EOF > '/etc/dracut.conf.d/99-kcs4500491.conf'
 hostonly_cmdline="yes"
 EOF
 
 
 ## DRACUT (example/modify) - /etc/dracut.conf.d/static_ip.conf
 # Example config for static IPv4, if static IPv4 (not DHCP) will be used
-cat << EOF > /etc/dracut.conf.d/static_ip.conf
+cat << EOF > '/etc/dracut.conf.d/static_ip.conf'
 # uncomment/modify for static IPv4 # kernel_commandline="ip=192.168.0.100 netmask=255.255.255.0 nameserver=192.168.0.20 nameserver=192.168.0.10"
 EOF
 
 
 ## SCRIPT (modify-exec) - /root/clevis_tang-luks_bind.sh
 # Example script to use clevis luks bind to tang server and modify /etc/fstab
-cat << EOF > /root/clevis_tang-luks_bind.sh
+cat << EOF > '/root/clevis_tang-luks_bind.sh'
 #!/bin/bash
 #
 #       /root/clevis_tang-luks_bind.sh
@@ -39,7 +39,7 @@ myTang="http://tang.mydomain.com:7500"     # my tang server (modify)
 systemctl enable clevis-luks-askpass.path
 
 # Run commands to bind Clevis to tang server for each block device required
-for d in \$(lsblk -p -n -s -r | awk '\$6 == "crypt" { getline; print \$1 }' | sort -u) ; do
+for d in $(lsblk -p -n -s -r | awk '$6 == "crypt" { getline; print $1 }' | sort -u) ; do
         echo -e "\n*****\t${d}\n"
         echo -e "\texec:\tclevis luks bind -d \${d} tang '{\"url\":\"\${myTang}\"}'"
         clevis luks bind -d \${d} tang '{"url":"'\${myTang}'"}'
