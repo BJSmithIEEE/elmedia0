@@ -22,7 +22,8 @@ omit_dracutmodules+=" ifcfg network "
 EOF
 
 
-###	regenerate initramfs
-KERNEL_VERSION=$(rpm -q kernel --qf '%{version}-%{release}.%{arch}\n')
-dracut -f --regenerate-all /boot/initramfs-${KERNEL_VERSION}.img ${KERNEL_VERSION}
+###     regenerate initramfs
+#KERNEL_VERSION=$(rpm -q kernel --qf '%{version}-%{release}.%{arch}\n')
+#dracut -fv --regenerate-all /boot/initramfs-${KERNEL_VERSION}.img ${KERNEL_VERSION}
+dracut -fv --regenerate-all
 
