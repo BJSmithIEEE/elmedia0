@@ -41,7 +41,7 @@ systemctl enable clevis-luks-askpass.path
 # Run commands to bind Clevis to tang server for each block device required
 for d in $(lsblk -p -n -s -r | awk '$6 == "crypt" { getline; print $1 }' | sort -u) ; do
         echo -e "\n*****\t${d}\n"
-        echo -e "\texec:\tclevis luks bind -d \${d} tang '{\"url\":\"\${myTang}\"}'"
+        echo -e "\texec:\tclevis luks bind -d ${d} tang '{\"url\":\"${myTang}\"}'"
         clevis luks bind -d ${d} tang '{"url":"'${myTang}'"}'
 done
 
