@@ -42,7 +42,7 @@ systemctl enable clevis-luks-askpass.path
 for d in $(lsblk -p -n -s -r | awk '$6 == "crypt" { getline; print $1 }' | sort -u) ; do
         echo -e "\n*****\t${d}\n"
         echo -e "\texec:\tclevis luks bind -d \${d} tang '{\"url\":\"\${myTang}\"}'"
-        clevis luks bind -d \${d} tang '{"url":"'\${myTang}'"}'
+        clevis luks bind -d ${d} tang '{"url":"'${myTang}'"}'
 done
 
 # Now modify /etc/fstab so system file systems know they are mounted in initrd (append 'x-initrd.mount' to options)
@@ -57,18 +57,20 @@ l="$(vgs -qo pv_all --noheading vg1 | sed -n 's,^.*[/]dev[/]mapper[/]\(luks-[^ \
 if [ "${l}" != "" ] ; then
 	# Found LUKS backing for vg1
 	# Insert rd.luks.uuid=luks-XXXX if not in GRUB default (Anaconda should do this)
-	grep -qie "^[ \t]*GRUB_CMDLINE_LINUX.*rd.luks.uuid=${l}.*$"
+	grep -qie "^[ \t]*GRUB_CMDLINE_LINUX.*rd.luks.uuid=${l}.*$" /etc/default/grub
 	[ $? -ne 0 ] &&	sed -i 's,^[ \t]*GRUB_CMDLINE_LINUX=",GRUB_CMDLINE_LINUX="rd.luks.uuid='${l}' ,g' /etc/default/grub
 	# Insert rd.lvm.vg=vg1 if not in GRUB default (Anaconda typically does *NOT* do this for LVM on LUKS, so add it, removes the need to have all rd.lvm.lv= entries)
-	grep -qie "^[ \t]*GRUB_CMDLINE_LINUX.*rd.lvm.vg=vg1.*$"
+	grep -qie "^[ \t]*GRUB_CMDLINE_LINUX.*rd.lvm.vg=vg1.*$" /etc/default/grub
 	[ $? -ne 0 ] &&	sed -i 's,^[ \t]*GRUB_CMDLINE_LINUX=",GRUB_CMDLINE_LINUX="rd.lvm.vg=vg1 ,g' /etc/default/grub
 	# Regenerate GRUB2
 	if [ -d "/sys/firmware/efi" ] ; then
 		# for uEFI (/etc/grub2-efi.cfg = /boot/efi/EFI/redhat/grub.cfg) if /sys/firmware/efi exists
-		grub2-mkconfig -o /etc/grub2-efi.cfg
+		#grub2-mkconfig -o /etc/grub2-efi.cfg
+		grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
 	else
 		# for BIOS (/etc/grub2.cfg = /boot/grub2/grub.cfg) if /sys/firmware/efi does *NOT* exist
-		grub2-mkconfig -o /etc/grub2.cfg
+		#grub2-mkconfig -o /etc/grub2.cfg
+		grub2-mkconfig -o /boot/grub2/grub.cfg
 	fi
 fi
 
