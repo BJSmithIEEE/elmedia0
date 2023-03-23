@@ -13,11 +13,11 @@
 myCwd="$(pwd)"
 myNam="$(basename ${0})"
 myDir="$(dirname ${0})"
-let gOver=0				# USB - don't overwrite by default
-if [ "${1}" == "-f" ] ; then let gOver=1 ; shift ; fi ; myDst="${1}"
-if [ "${2}" == "-f" ] ; then let gOver=1 ; shift ; fi ; mySrc="${2}"
-if [ "${3}" == "-f" ] ; then let gOver=1 ; shift ; fi ; myLbl="${3}"
-if [ "${4}" == "-f" ] ; then let gOver=1 ; shift ; fi 
+let gOverParm=0				# USB - don't overwrite by default
+if [ "${1}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; myDst="${1}"
+if [ "${2}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; mySrc="${2}"
+if [ "${3}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; myLbl="${3}"
+if [ "${4}" == "-f" ] ; then let gOverParm=1 ; shift ; fi 
 
 
 # Source Common Functions/Globals
@@ -27,7 +27,7 @@ if [ "${4}" == "-f" ] ; then let gOver=1 ; shift ; fi
 # Environment
 myPkg="addlpkgs ansible"		# Tarballs of Packages to Include
 myOpt="STIG TPS"			# Tarballs of Optional Files to Include
-
+gOver=${gOverParm}			# USB - overwrite only if parameter passed
 
 
 ###	Functions
