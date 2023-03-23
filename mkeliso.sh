@@ -25,7 +25,7 @@ myDst="${1}"
 # Environment
 myPkg="addlpkgs ansible"		# Tarballs of Packages to Include
 myOpt="STIG TPS"			# Tarballs of Optional Files to Include
-gOver=1					# Always copy/overwrite by default
+gOver=1					# ISO - Always copy/overwrite by default
 
 
 
@@ -133,6 +133,7 @@ setMnuLbl "${myDstTmp}" "${myLbl}" "${myLblDef}"
 # Build ISO file (not required for USB) - See Red Hat Solution 60959 - https://access.redhat.com/solutions/60959
 echo -e "\n${myNam}:\tGenerate ISO File"
 cd "${myDstTmp}"
+rmdir rr_moved
 ${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points -V "${myLbl}" . 2>&1 | egrep '9[.]9.[%]'
 ${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"
 cd "${myCwd}"
