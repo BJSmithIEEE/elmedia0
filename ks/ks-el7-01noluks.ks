@@ -8,7 +8,7 @@
 ###     Base - Install
 # deprecated # install
 text
-url --url=file:///run/install/repo
+# SKIP/ASSUMED FILE/LOCAL - R7 FALSE NETWORK DEPENDENCY # url --url=file:///run/install/repo
 repo --name="addlpkgs" --baseurl=file:///run/install/repo/addlpkgs
 repo --name="ansible29" --baseurl=file:///run/install/repo/ansible29
 
