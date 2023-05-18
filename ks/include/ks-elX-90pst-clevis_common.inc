@@ -7,8 +7,10 @@
 
 
 ## LUKS (example/modify) - /etc/crypttab
-# Example entry if 2nd LUKS volume, non-root, via tang server (after network is up)
-echo -e "\n# uncomment/modify for 2nd LUKS volume, non-root # name_under-dev_mapper            UUID=01234567-89ab-cdef-0123-456789abcdef none _netdev" >> /etc/crypttab 
+# Example entry - added volume, non-root, via TPM2 chip (or manual passphrase entry)
+echo -e "\n# TPM2 - added volume, non-root #    DMname4TPM2orManual    UUID=01234567-89ab-cdef-0123-456789abcdef    none" >> /etc/crypttab 
+# Example entry - added volume, non-root, via Tang server (after network is up)
+echo -e "\n# Tang - Added volume - non-root #    DMname4Tang           UUID=01234567-89ab-cdef-0123-456789abcdef    none    _netdev" >> /etc/crypttab 
 
 
 ## DRACUT (config) - /etc/dracut.conf.d/99-kcs4500491.conf
@@ -21,7 +23,8 @@ EOF
 ## DRACUT (example/modify) - /etc/dracut.conf.d/static_ip.conf
 # Example config for static IPv4, if static IPv4 (not DHCP) will be used
 cat << 'EOF' > '/etc/dracut.conf.d/static_ip.conf'
-# uncomment/modify for static IPv4 # kernel_commandline="ip=192.168.0.100 netmask=255.255.255.0 nameserver=192.168.0.20 nameserver=192.168.0.10"
+### uncomment/modify for static IPv4:  
+# kernel_cmdline="ip=192.168.0.100 netmask=255.255.255.0 nameserver=192.168.0.20 nameserver=192.168.0.10"
 EOF
 
 
@@ -48,6 +51,13 @@ done
 # Now modify /etc/fstab so system file systems know they are mounted in initrd (append 'x-initrd.mount' to options)
 echo -e "\n*****\tModify /etc/fstab so system file systems have option 'x-initrd.mount' appended\n"
 sed -i 's/x-systemd.device-timeout=0[ \t]\+/x-systemd.device-timeout=0,x-initrd.mount  /g' /etc/fstab
+
+# Inform sysadmin that if a Static IP is to be used, they need to edit the relevant file
+echo -e "\n*****\tPlease modify Dracut config file(/etc/dracut.conf.d/static_ip.conf) if a static IP is to be used (instead of DHCP)"
+
+# Inform sysadmin to rebuild all initramfs files (after any further modifications)
+echo -e "\n*****\nPlease execute command(dracut --regenerate-all --force) to rebuild all initramfs boot files (after any further modifications)\n"
+
 EOF
 
 
