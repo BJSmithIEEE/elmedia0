@@ -7,17 +7,21 @@
 
 #set -ox
 
-###	Set Umask to 002
+###	Always Set Umask to 002
 umask 002
 
-###	Globals
-gDt="$(date +%Y%b%d-%H%M%S)"
-let gAnsVer=29	# Ansible Version
-let gOver=0	# Overwrite USB distribution
-gSvrUri='http://softdist.mydomain.com'
-gSvrTar='pub/elmedia/tar'
+###	Varibles - May be overwritten by ./bin/custom.vars file
+gSvrUri='http://softdist.mydomain.com'	# Software distribution tarballs - HTTP[S] server hostname (with leading http[s]://)
+gSvrTar='pub/elmedia/tar'		# Software distribution tarballs - HTTP[S] server path
+myOpt="STIG TPS"			# Tarballs of Optional Files to Include (user provided)
+myPkg="addlpkgs ansible"		# Tarballs of Packages to Include (distribution or third party software provided)
+let gAnsVer=29				# Ansible Version pre-Stream/RHEL 9 (Stream/RHEL 7/8)
 
-# Internal
+###	Global Defaults
+gDt="$(date +%s_%Y%b%d)"		# Unified Version Seconds-since-Epoch + Human-readable-Date
+let gOver=0				# Don't overwrite USB by default (will always be set for ISO)
+
+###	 Internal
 bOs="$(uname -o | tr [:upper:] [:lower:] | sed -e 's/gnu[/]//' 2>> /dev/null)"	# binary OS (e.g., linux, msys, et al.)
 bRsync="$(which rsync 2>> /dev/null)"		# Rsync command
 bCurl="$(which curl 2>> /dev/null)"		# curl command
@@ -192,38 +196,42 @@ cpTree() {
 }
 
 # getFilTar - Get support tarball file and extract
-# 	$1	Destination to extract into (must be a directory)
-# 	$2	Tarball to pull (must be a tarball)
-# 	$3	If this file/directory (in destination) doesn't exist, get and extract tarball, otherwise skip
+# 	$1	Base Directory for operations (must be a directory)
+# 	$2	Destination Subdirectory to extract into (must be a directory)
+# 	$3	Tarball to pull (must be a tarball)
+# 	$4	Source Relative Path (file/subdirectory), if doesn't exist, get and extract tarball, otherwise skip
+# 	$5	[Optional] Source Subdirectory for local copy
 getFilTar() {
-	local d="${1}"
-	local t="${2}"
-	local p="${3}"
+	local b="${1}"
+	local d="${2}"
+	local t="${3}"
+	local p="${4}"
+	local s="${5}"
 	# Destination must be a directory
-	if [ -d "${d}" ] ; then
-		if [ ! -e "${d}/${p}" ] ; then
+	if [ -d "${b}/${d}" ] ; then
+		if [ ! -e "${b}/${d}/${p}" ] ; then
 			# Tarball does not exist, attempt to pull from server
-			echo -e "\tpath(${d}/${p}) does not exist, get tarball(${t})" >> /dev/stderr
+			echo -e "\tpath(${b}/${d}/${p}) does not exist, get tarball(${t})" >> /dev/stderr
 			echo -e "\t  get(${gSvrUri}/${gSvrTar}/${t})" >> /dev/stderr
 			if [ "${bCurl}" != "" ] ; then
 				# Curl exists, attempt to pull from server
-				${bCurl} -fks "${gSvrUri}/${gSvrTar}/${t}" -o "${d}/${t}"
-				if [ -r "${d}/${t}" ] ; then
+				${bCurl} -fks "${gSvrUri}/${gSvrTar}/${t}" -o "${b}/${d}/${t}"
+				if [ -r "${b}/${d}/${t}" ] ; then
 					echo -e "\t    download successful" >> /dev/stderr
 				else
-					# Pull did not work, use older, static copy in './softdist/'
+					# Pull did not work, use older, static copy in ${s}
 					echo -e "\t    download NOT successful" >> /dev/stderr
-					if [ -r "softdist/${t}" ] ; then
-						echo -e "\t    using tarball included with elmedia" >> /dev/stderr
-						cp -p "softdist/${t}" "${d}/${t}"
+					if [ -d "${b}/${s}" ] && [ -r "${b}/${s}/${t}" ] ; then
+						echo -e "\t    using local tarball copy" >> /dev/stderr
+						cp -p "${b}/${s}/${t}" "${b}/${d}/${t}"
 					fi
 				fi
-				if [ -r "${d}/${t}" ] ; then
-					echo -e "\t  extract(${d}/${t})" >> /dev/stderr
+				if [ -r "${b}/${d}/${t}" ] ; then
+					echo -e "\t  extract(${b}/${d}/${t})" >> /dev/stderr
 					if [ "${bTar}" != "" ] ; then
-						${bTar} xC ${d}/ -f ${d}/${t}
-						echo -e "\t  path(${d}/${p})" >> /dev/stderr
-						if [ -e "${d}/${p}" ] ; then
+						${bTar} xC ${b}/${d}/ -f ${b}/${d}/${t}
+						echo -e "\t  path(${b}/${d}/${p})" >> /dev/stderr
+						if [ -e "${b}/${d}/${p}" ] ; then
 							echo -e "\t    validated" >> /dev/stderr
 						else
 							echo -e "\t    WARNING:  does NOT exist, media may be INCOMPLETE" >> /dev/stderr
@@ -238,7 +246,7 @@ getFilTar() {
 				echo -e "\t    WARNING:  'curl' not installed, skipping" >> /dev/stderr
 			fi
 		else
-			echo -e "\tpath(${d}/${p}) already exists, skipping tarball(${t})" >> /dev/stderr
+			echo -e "\tpath(${b}/${d}/${p}) already exists, skipping tarball(${t})" >> /dev/stderr
 		fi
 	fi
 }

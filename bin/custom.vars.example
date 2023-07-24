@@ -1,0 +1,13 @@
+#       ***EXAMPLE*** This file is to be copied, removing the '.example' suffix
+#	The resulting 'custom.vars' is sourced, NOT directly executed!
+#
+#       custom.func[.example]
+#       Custom Variables for making uEFI Bootable USB devices (baremetal) and ISO images (virtualization)
+
+###     Varibles - Overwrites those in ./bin/elmedia.func
+gSvrUri='http://softdist.mydomain.com'  # Software distribution tarballs - HTTP[S] server hostname (with leading http[s]://)
+gSvrTar='pub/elmedia/tar'               # Software distribution tarballs - HTTP[S] server path
+myOpt="STIG TPS"                        # Tarballs of Optional Files to Include (user provided)
+myPkg="addlpkgs ansible"                # Tarballs of Packages to Include (distribution or third party software provided)
+let gAnsVer=29                          # Ansible Version pre-Stream/RHEL 9 (Stream/RHEL 7/8)
+
