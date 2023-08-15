@@ -121,13 +121,14 @@ fi
 
 # Copy distribution - This is the most time consuming, unless the distribution is already on the media (in the case of USB)
 if [ "${myOut}" == "usb" ] && [ "${gOver}" == 0 ] ; then
+	# USB No Overwrite
 	echo -e "\n${myNam}:\tCheck Destination USB against Source ISO Distro (No Overwrite)"
-	cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0
 else
 	# ISO Copy / USB Overwrite
 	echo -e "\n${myNam}:\tCopy Source ISO distro files to Destination (Create/Overwrite)"
 fi
 echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
+# Actually do copy (Time Consuming)
 cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0
 
 # NOTE:  Always do these steps after the distribution - in case the directories already exist
@@ -173,7 +174,7 @@ getMnuGet "${myDstTmp}"
 # TODO # genMnuKse "${myDstTmp}"
 # Static Menu - Interim/Temporary (hardcoded)
 echo -e "\n${myNam}:\tCopy Boot Files (hardcoded)"
-cpTree "${myDir}/default/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  1
+cpTree "${myDir}/default/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0
 cpTree "${myDir}/custom/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0
 # Menu - Set/Replace any ISO default label with actual ISO label
 echo -e "\n${myNam}:\tUpdate Boot Files for Media Label (${myLbl})"
@@ -184,11 +185,11 @@ if [ "${myOut}" == "iso" ] ; then
 	echo -e "\n${myNam}:\tGenerate ISO File"
 	cd "${myDstTmp}"
 	rmdir rr_moved 2> /dev/null
-#	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points -V "${myLbl}" . 2>&1 | grep -E '9[.]9.[%]'
-#	${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"
+	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points -V "${myLbl}" . 2>&1 | grep -E '9[.]9.[%]'
+	${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"
 	cd "${myCwd}"
 	echo -e "\n${myNam}:\tRemove Temporary ISO Build Subdir"
 	# WARNING:  Never use only a variable with no text with 'rm -rf'
-#	/bin/rm -rf "${myDst}/elmedia-isobuild_${gDt}"
+	/bin/rm -rf "${myDst}/elmedia-isobuild_${gDt}"
 fi
 
