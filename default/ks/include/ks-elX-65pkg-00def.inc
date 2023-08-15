@@ -92,8 +92,9 @@ boom-boot-grub2
 python3-boom
 
 # Other
-postfix
 mailx
+postfix
+sysstat
 
 # Remove GNOME Boxes from Desktop Installs
 -gnome-boxes
