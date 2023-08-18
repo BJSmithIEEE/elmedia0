@@ -161,7 +161,10 @@ cpTree "${myDir}/default/ks" "${myDstTmp}/ks"  1  1
 cpTree "${myDir}/custom/ks" "${myDstTmp}/ks"  1  0
 echo -e "\n${myNam}:\tInject Kickstart Files w/Globals-Functions"
 for f in ${myDstTmp}/ks/ks-el*.ks ; do
+        # This (cd) is a temporary fix - needs to be re-written
+        cd ${myDstTmp}
 	sed -i '/^[ \t]*[#][ \t]\+XXXXX[ \t]\+INJECT_KSPRE[ \t]\+XXXXX[ \t]*$/r ks/inject/ks-elmedia.inject' ${f}
+        cd ${myCwd}
 done
 
 # Boot files
