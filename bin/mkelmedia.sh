@@ -136,10 +136,12 @@ cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0
 # Packages not provided in distribution media but required in %packages
 for p in ${myPkg} ; do
 	echo -e "\n${myNam}:\tGet Packages (${p}) Repo (if no local copy)"
-	if [ "${p}" == "ansible" ] && [ ${gVer} -le 8 ] ; then
-		getFilTar "${myDir}" "staging" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}${gAnsVer}.${gRelVer}/repodata" "softdist"
-		echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
-		cpTree "${myDir}/staging/${p}.${gVer}/${p}${gAnsVer}.${gRelVer}" "${myDstTmp}/${p}${gAnsVer}"  1  1
+	if [ "${p}" == "ansible" ] ; then
+		if [ ${gVer} -le 8 ] ; then
+			getFilTar "${myDir}" "staging" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}${gAnsVer}.${gRelVer}/repodata" "softdist"
+			echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
+			cpTree "${myDir}/staging/${p}.${gVer}/${p}${gAnsVer}.${gRelVer}" "${myDstTmp}/${p}${gAnsVer}"  1  1
+		fi
 	else
 		getFilTar "${myDir}" "staging" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}.${gRelVer}/repodata" "softdist"
 		echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
