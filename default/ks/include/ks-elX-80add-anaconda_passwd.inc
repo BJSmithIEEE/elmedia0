@@ -1,4 +1,4 @@
-### ks/include/ks-elX-80add-openscap_stig_cui.inc
+### ks/include/ks-elX-80add-anaconda_passwd.inc
 
 # Red Hat Anaconda-enforced - Password Security Policy
 %anaconda
@@ -8,15 +8,4 @@ pwpolicy user --minlen=15 --minquality=1 --notstrict --nochanges --emptyok
 pwpolicy luks --minlen=15 --minquality=1 --notstrict --nochanges --notempty
 %end
 
-# OpenSCAP Security Profile - DISA STIG
-%addon org_fedora_oscap
-    content-type = scap-security-guide
-    profile = xccdf_org.ssgproject.content_profile_stig
-%end
-
-# OpenSCAP Security Profile - NIST CUI
-%addon org_fedora_oscap
-    content-type = scap-security-guide
-    profile = xccdf_org.ssgproject.content_profile_cui
-%end
 
