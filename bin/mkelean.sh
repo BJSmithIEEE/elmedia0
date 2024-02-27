@@ -14,12 +14,18 @@ myCwd="$(pwd)"
 myNam="$(basename ${0})"
 myBas0="$(dirname ${0})"
 myBas="$(/usr/bin/readlink -f ${myBas0})"
-myDir="$(/usr/bin/readlink -f ${myBas}/../)"
+myDir="$(/usr/bin/readlink -f ${myBas0}/../)"
+myCus="$(/usr/bin/readlink -f ${myBas0}/../../elmedia0.custom/)"
+myCcd="$(/usr/bin/readlink -f ${myCus}/custom/)"
+# if myCcd (per elmedia0.custom/custom) doesn't exist, just use 'custom' directory inside of Upstream elmedia0/custom
+[ ! -d "${myCcd}" ] && myCcd="${myDir}/custom/"
 
-
-###	Source Common Functions/Globals
+###     Source Common Functions/Globals
 . "${myDir}/bin/elmedia.func"
+# Look for custom variables in elmedia0 project directory
 [ -r "${myDir}/bin/custom.vars" ] && . "${myDir}/bin/custom.vars"
+# Look for custom variables in optional, end-user created, elmedia0.custom project ./bin subdirectory as overrides
+[ -r "${myCus}/bin/custom.vars" ] && . "${myCus}/bin/custom.vars"
 
 
 ###	Functions

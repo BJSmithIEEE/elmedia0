@@ -16,7 +16,14 @@ myCwd="$(pwd)"
 myNam="$(basename ${0})"
 myBas0="$(dirname ${0})"
 myBas="$(/usr/bin/readlink -f ${myBas0})"
-myDir="$(/usr/bin/readlink -f ${myBas}/../)"
+myDir="$(/usr/bin/readlink -f ${myBas0}/../)"
+myCus="$(/usr/bin/readlink -f ${myBas0}/../../elmedia0.custom/)"
+myCcd="$(/usr/bin/readlink -f ${myCus}/custom/)"
+# if myCcd (per elmedia0.custom/custom) doesn't exist, just use 'custom' directory inside of Upstream elmedia0/custom
+if [ "${myCcd}" == "" ] || [ ! -d "${myCcd}" ] ; then
+	myCcd="${myDir}/custom/"
+fi
+# Evaluate positional and optional parameters (this needs to be re-written to do bash getopts proper) 
 let gOverParm=0
 if [ "${1}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; myOut="${1}"
 if [ "${2}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; myDst="${2}"
@@ -26,7 +33,10 @@ if [ "${5}" == "-f" ] ; then let gOverParm=1 ; shift ; fi
 
 ###     Source Common Functions/Globals
 . "${myDir}/bin/elmedia.func"
+# Look for custom variables in elmedia0 project directory
 [ -r "${myDir}/bin/custom.vars" ] && . "${myDir}/bin/custom.vars"
+# Look for custom variables in optional, end-user created, elmedia0.custom project ./bin subdirectory as overrides
+[ -r "${myCus}/bin/custom.vars" ] && . "${myCus}/bin/custom.vars"
 
 ###	Evaluate Overwrite Flag
 if [ "${myOut}" != "iso" ] ; then 
@@ -160,7 +170,8 @@ cpTree "${myDir}/staging/opt.${gVer}" "${myDstTmp}/opt"  1  1
 # Kickstart files
 echo -e "\n${myNam}:\tCopy Kickstart Files"
 cpTree "${myDir}/default/ks" "${myDstTmp}/ks"  1  1
-cpTree "${myDir}/custom/ks" "${myDstTmp}/ks"  1  0
+# Look for custom Kickstart files in optional, end-user created, elmedia0.custom project ./custom subdirectory as overrides
+[ -r "${myCcd}/ks" ] && cpTree "${myCcd}/ks" "${myDstTmp}/ks"  1  0
 echo -e "\n${myNam}:\tInject Kickstart Files w/Globals-Functions"
 for f in ${myDstTmp}/ks/ks-el*.ks ; do
         # This (cd) is a temporary fix - needs to be re-written
@@ -180,7 +191,8 @@ getMnuGet "${myDstTmp}"
 # Static Menu - Interim/Temporary (hardcoded)
 echo -e "\n${myNam}:\tCopy Boot Files (hardcoded)"
 cpTree "${myDir}/default/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0
-cpTree "${myDir}/custom/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0
+# Look for custom Static Menu files in optional, end-user created, elmedia0.custom project ./custom subdirectory as overrides
+[ -r "${myCcd}/hardcode" ] && cpTree "${myCcd}/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0
 # Menu - Set/Replace any ISO default label with actual ISO label
 echo -e "\n${myNam}:\tUpdate Boot Files for Media Label (${myLbl})"
 setMnuLbl "${myDstTmp}" "${myLbl}" "${myLblDef}"

@@ -54,7 +54,7 @@ getLabel() {
 					# On Linux - use readlink to find label in /dev/disk/by-label for device
 					d0=$(/usr/bin/readlink -f ${f})
 					if [ "${d}" == "${d0}" ] ; then
-						l="$(basename ${f})"
+						l="$(/usr/bin/basename ${f})"
 					fi
 				done
 			fi
@@ -136,8 +136,8 @@ cpTree() {
 	local b=0 ; [ "${3}" == "1" ] && [ "${4}" == "1" ] && let b=1
 	local n=""
 	local p=""
-	local ps="$(basename ${s})"
-	local pd="$(basename ${d})"
+	local pb=""
+	local pr=""
 	local t="$(date +%s)"
 	# Source must be a directory
 	if [ -d "${s}" ] ; then
@@ -170,18 +170,27 @@ cpTree() {
 			# Use find to generate a list of null character terminated paths from source path, just immediate directory
 			find "${s}" -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' p ; do
 				if [ "${bRsync}" != "" ] ; then 
+					local pb="$(/usr/bin/basename ${p})"
+					local pr="$(/usr/bin/readlink -f ${p})"
 					# Use rsync w/checksum to see if replacement is needed
-					echo -e "\t     dst:  \t${d}  \t<==(rsync/diff)==  \t${p}" >> /dev/stderr
-					${bRsync} -ac "${p}" "${d}/" 2>> /dev/null
+					# NOTE: For rsync, use readlink -f to get actual source directory, or it won't work
+					echo -e "\t     dst:  \t${d}/${pb}  \t<==(rsync/diff)==  \t${pr}" >> /dev/stderr
+					if [ -d "${pr}" ] ; then
+						# Source is a directory (add trailing slash)
+						${bRsync} -ac "${pr}/" "${d}/${pb}" 2>> /dev/null
+					else
+						# Source is not directory 
+						${bRsync} -ac "${pr}" "${d}/${pb}" 2>> /dev/null
+					fi 
 				else
 					# Use cp, and either force overwrite, or not, based on parameter
 					if [ ${f} -eq 1 ] ; then
-						echo -e "\t     dst:  \t${d}  \t<==(force/over)==  \t${p}" >> /dev/stderr
+						echo -e "\t     dst:  \t${d}/${p}  \t<==(force/over)==  \t${p}" >> /dev/stderr
 						if [ "${bOs}" != "linux" ] ; then cp -Rdf "${p}" "${d}/"
 						else cp -Rdfp "${p}" "${d}/"
 						fi
 					else
-						echo -e "\t     dst:  \t${d}  \t<==(noclob/skip)==  \t${p}" >> /dev/stderr
+						echo -e "\t     dst:  \t${d}/${p}  \t<==(noclob/skip)==  \t${p}" >> /dev/stderr
 						if [ "${bOs}" != "linux" ] ; then cp -Rdn "${p}" "${d}/"
 						else cp -Rdnp "${p}" "${d}/"
 						fi

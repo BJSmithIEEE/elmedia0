@@ -1,10 +1,12 @@
+#
+#	./elmedia0/bin/custom.vars.example
 #       ***EXAMPLE*** This file is to be copied, removing the '.example' suffix
 #	The resulting 'custom.vars' is sourced, NOT directly executed!
 #
-#       custom.func[.example]
+#       [Copy as] ./elmedia0.custom/bin/custom.vars [then edit]
 #       Custom Variables for making uEFI Bootable USB devices (baremetal) and ISO images (virtualization)
 
-###     Varibles - Overwrites those in ./bin/elmedia.func
+###     Varibles - Overwrites those in ./elmedia0/bin/elmedia.func
 gSvrUri='http://softdist.mydomain.com'  # Software distribution tarballs - HTTP[S] server hostname (with leading http[s]://)
 gSvrTar='pub/elmedia/tar'               # Software distribution tarballs - HTTP[S] server path
 myOpt="STIG TPS"                        # Tarballs of Optional Files to Include (user provided)
