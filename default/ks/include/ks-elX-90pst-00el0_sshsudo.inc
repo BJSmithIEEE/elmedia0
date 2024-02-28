@@ -13,19 +13,19 @@ for u in ${SYSWHEEL} ${SYSSUDO} ; do
 done
 
 
-### both SYSWHEEL and SYSSUDO should have explicit stanzas guaranteeing they can always SSH into the system
-# IMPORTANT:  These stanzas need to be at the end of /etc/ssh/sshd_config, so move/uncomment after system is up
-# EXAMPLE /etc/ssh/sshd_config block (commented out by default)
-echo -e "\n#####\tBEGIN Match - NEEDS TO BE AT THE BOTTOM / AFTER ALL OTHER CONFIG" >> /etc/ssh/sshd_config
+### both SYSWHEEL and SYSSUDO should have explicit stanzas guaranteeing they can always SSH into the system with a password
+echo -e "\n#####\tBEGIN Match:  System Administrators" >> /etc/ssh/sshd_config
 for u in ${SYSWHEEL} ${SYSSUDO} ; do
+	echo -e "\n###\tExplicit, guaranteed SSH access for ${u}" >> /etc/ssh/sshd_config
 	for t in Group User ; do
-		echo -e "\n###\tExplicit, guaranteed SSH access for ${t} ${u}" >> /etc/ssh/sshd_config
-		echo -e "#Match ${t}\t${u}" >> /etc/ssh/sshd_config
-		echo -e "#\tAllow${t}s\t${u}" >> /etc/ssh/sshd_config
-		echo -e "#\tPasswordAuthentication yes" >> /etc/ssh/sshd_config
+		echo -e "Match ${t}\t${u}" >> /etc/ssh/sshd_config
+		echo -e "\tAllow${t}s\t${u}" >> /etc/ssh/sshd_config
+		echo -e "\tPasswordAuthentication yes" >> /etc/ssh/sshd_config
 	done
 done
-echo -e "\n#####\tEND Match - NEEDS TO BE AT THE BOTTOM / AFTER ALL OTHER CONFIG\n" >> /etc/ssh/sshd_config
+echo -e "\n###\tMatch ALL again" >> /etc/ssh/sshd_config
+echo -e "Match ALL\n" >> /etc/ssh/sshd_config
+echo -e "\n#####\tEND   Match:  System Administrators\n" >> /etc/ssh/sshd_config
 
 
 ### SYSSUDO should not be in wheel, so explicitly granted sudo (revokable)
