@@ -2,20 +2,23 @@
 
 # Enterprise Linux Media [Builder] Naught (elmedia0)
 
-Build Bootable (e.g., BIOS/uEFI ISO9660 image or native uEFI FAT32 USB) Enterprise Linux Media with Automated Kickstarts for CentOS/RHEL 7/8/9 (hereafter EL7/8/9) to DISA STIG and FIPS 140 Compliance
+Build Bootable (e.g., BIOS/uEFI ISO9660 image or native uEFI VFAT USB devcies) Enterprise Linux Media with Automated Kickstarts for CentOS/RHEL 7/8/9 (hereafter EL7/8/9) to DISA STIG and FIPS 140 Compliance
 
 
 ## Overview
 
 The project tree has the following structure, each with their own README files.
 
-> ***TODO:*** *This should be a table*
+> ***TODO:*** *This should be a table* - to be far more readable
 
-* **[./elmedia0/bin/](./bin/)** - Bash scripts, purposely under a `./bin` so SELinux enforcing does not have an issue (e.g., `# restorecon -Rv /opt/github/elmedia0/`)
-* **[./elmedia0/custom/](./custom/)** - Site-specific customiations to Boot Menu and Anaconda-Installer Kickstart, files/functions/includes -- may also be located (and overrided by contents) in `./elmedia0.custom/custom/` (as a seperate, user-maintained, GitHub, GitLab, et al. project)
-* **[./elmedia0/default/](./default/)** - Default elmedia0 Boot Menu and Anaconda-Installer Kickstart files/functions/includes -- overridden by those files in `./elmedia0/custom/` (and `./elmedia0.custom/custom/`)
-* **[./elmedia0/softdist/](./softdist/)** - A local, manually maintained repository of software distribution archive files, instead of storing on a centralized web server -- see the sections [Ansible](#ansible) and [Distribution](#distribution) -- for inclusion of Additional Packages (not in the base CentOS/Stream media), Ansible (e.g., 2.9 for EL7/8 install-time only) and Optional trees (i.e., under `/opt/`) on newly built systems, including Ansible DISA STIG playbooks
-* **[./elmedia0/staging/](./staging/)** - A temporary downloading/staging area of softawre distribution archive files when building that is **not** cleared after each execution (caches downloads/extractions from a web server or `./softdist/`)
+* **`./elmedia0/bin/`** (see [./bin/](./bin/)) - Bash scripts, purposely under a `./bin`, for SELinux considerations (e.g., `# restorecon -Rv /opt/github/elmedia0/`)
+* **`./elmedia0/bin/`** - Alternative, separate, external location (to the `elmedia0` project) location for the site-specific Custom Variables (`./bin/custom.vars`) that may be maintained in another repository (e.g., in GitLab, et al.), and is preferred over `./elmedia0/bin/custom.vars`
+* **`./elmedia0/custom/` (see [./custom/](./custom/)) - Site-specific customiations to Boot Menu and Anaconda-Installer Kickstart, files/functions/includes
+* **`./elmedia0.custom/custom/`** - Alternative, separate, external location (to the `elmedia0` project) location that may be maintained by users in another repository (e.g., in GitLab, et al.), and is preferred over `./elmedia0/custom/`
+* **`./elmedia0/default/`** (see [./default/](./default/)) - Default elmedia0 Boot Menu and Anaconda-Installer Kickstart files/functions/includes -- overridden by those files in `./elmedia0/custom/` (and `./elmedia0.custom/custom/`)
+* **`./elmedia0/softdist/`** (see [./softdist/](./softdist/)) - A local, manually maintained repository of software distribution archive files, instead of storing on a centralized web server -- see the sections [Ansible](#ansible) and [Distribution](#distribution) -- for inclusion of Additional Packages (not in the base CentOS/Stream media), Ansible (e.g., 2.9 for EL7/8 install-time only) and Optional trees (i.e., under `/opt/`) on newly built systems, including Ansible DISA STIG playbooks
+* **`./elmedia0/staging/`** (see [./staging/](./staging/)) - A temporary downloading/staging area of softawre distribution archive files when building that is **not** cleared after each execution (caches downloads/extractions from a web server or `./softdist/`)
+
 
 
 ## Quickstart
@@ -50,9 +53,9 @@ The positional paramters are as follows (**TODO:** need to adopt bash getopt).
 
 1. **Type** (`iso`|`usb`) - ***BIOS/uEFI Bootable ISO***9660 Yellow Book image (`iso`) or native ***uEFI Bootable USB VFAT***-formatted (recommend FAT32 up to 128GiB/133GB) media (`usb`) -- 3.x for speed, 2.0 for older uEFI boot compatibility 
 2. **Destination** (*dst_dir*) - the ***directory*** to build/output the ISO file (2x run-time storage is required, temporary and final ISO) or the ***mount*** where the USB media is already [auto-]mounted (it will read the USB label)
-3. **Source** (*src_iso_mnt*) - the ***mount*** (including on loopback) where the bootable Enterprise Linux ISO media is located, or the ***directory*** where its contents have been copied to  
+3. **Source** (*src_iso_mnt*) - the ***mount*** (including on loopback) where the bootable Enterprise Linux ISO media is located, or the ***directory*** where its contents have been copied
 
-Optionally, an ISO or USB label may be passed as the fourth argument, but the USB label for the VFAT file system must match.  The script does read the existing label, so it usually does **not** need to be passed. Unfortunately, at this time, the script does not support changing the USB VFAT label in many environemnts (it can read, but not change).  A matching label, to the ISO or USB VFAT file system label, is required for the Boot Mneu to work.
+Optionally, an ISO or USB label may be passed as the fourth argument, but the USB label for the VFAT file system must match.  The script does read the existing label, so it usually does **not** need to be passed. Unfortunately, at this time, the script does not support changing the USB VFAT label in many environemnts (it can read, but not change).  A matching label, to the ISO or USB VFAT file system label, is required for the Boot Menu to work.
 
 > **IMPORTANT:**  `mkelmedia.sh` has only been tested under GNU/Linux, various MinSys/MinGW solutions (e.g., Git Shell), various Cygwin solutions (e.g., MobaXterm, with added packages), and may or may not work under some WSL2 distributions and/or Powershell.
 
@@ -61,20 +64,24 @@ Optionally, an ISO or USB label may be passed as the fourth argument, but the US
 
 ## Ansible
 
-Ansible is used for automating several post installation steps.
+Ansible is used for automating several post-installation components.  These vary based on the Kickstart files/includes and are covered more in-depth in the [./elmedia0/default/](./default) documentation.
 
-For EL7/8, Ansible 2.9 was chosen because many Upstream and Government funded projects for EL8 and definitely EL7 built their Ansible playbooks around long-term version 2.9.  It can be removed and/or upgraded to a newer `ansible-core` (e.g., in EL8) or full `ansible` (e.g., in EPEL8), but the modifications to the default Kickstart files/includes required may be non-trivial.  Ansible 2.9 in RHEL7/8 is no longer maintained by Red Hat as of 2023Q3.
+For EL9+, and even late EL8 releases, Ansible Core (`ansible-core`) is included in the media.  But some playbooks may require additional Ansible Community/Galaxy components.  Alternatively full Ansible (`ansible`) from EPEL maybe used, but then an Ansible package will need to be included.
 
-For more information on Ansible 2.9 in EL7/8, please see [./README_Ansible29_EL7](README for Ansible 2.9 on EL7) and [./README_Ansible29_EL8](README for Ansible 2.9 on EL8), respectively.  I.e., a tarball with a YUM repository (e.g., named `ansible.8-validated.tar`) will need to be dropped into the local Software Distribution directory (`./elmedia0/softdist/`) and/or put on a web server (which is defined in `custom.vars`).
+> **IMPORTANT:**  EL9 support is still in its infancy, including the lack of DISA STIG Ansible Playbooks from US DoD CyberX, Ansible Lockdown on GitHub, et al.  So as of right now, only expect basic DISA STIG compliance with EL9 (e.g., file system layout and some required/removed packages).
 
-For EL9+, Ansible Core (`ansible-core`) is included in the media.  But some playbooks may require additional Ansible Community/Galaxy components.  Alternatively full Ansible (`ansible`) from EPEL mayb e used, but then an Ansible package will need to be included.
+For EL7 and, subsequently, EL8, Ansible 2.x was chosen, ultimately Ansible 2.9 by 2019 (thru 2023), because many Upstream and Government funded projects for EL8, and definitely EL7, built their Ansible playbooks around long-term (2019-2023) version 2.9.  It can be removed and/or upgraded to a newer `ansible-core` (e.g., in EL8) or full `ansible` (e.g., in EPEL8), but the modifications to the default Kickstart files/includes required may be non-trivial.
 
-> **IMPORTANT:**  EL9 support is still in its infancy, including the lack of DISA STIG Ansible Playbooks from US DoD CyberX, Ansible Lockdown on GitHub, et al.  So as of right now, only expect basic DISA STIG compliance with EL9 (e.g., file system layout and some required/removed packages).  
+For more information on Ansible 2.9 in EL7/8, please see [Software Distribution - EL7 Ansible 2.9](./softdist/README.md#el7-ansible-29) and [Software Distribution - EL8 Ansible 2.9](./softdist/README.md#el8-ansible-29), respectively.  I.e., a tarball with a YUM repository (e.g., named `ansible.8-validated.tar`) will need to be dropped into the local Software Distribution directory (`./elmedia0/softdist/`) and/or put on a web server (which is defined in `custom.vars`).
+
+> **IMPORTANT:**  Ansible 2.9 in EL7/8 is no longer maintained by Red Hat after 2023Q3.  However, for boot/installation-time support. `elmedia0` will continue to focus on Ansible 2.9, which can be upgraded post-install.  This may change in the future, as EL7 under ELS (2024Q3-2028Q2) becomes less and less used, and Ansible Core in EL8 more on-par to EL9 (and EL10 by 2025+).
 
 
 ## Distribution
 
-*TODO*
+*TODO/Complete*
+
+See the [./elmedia0/softdist/](./softdist/) documentation for more on the local Software Distribution, as well as building tarballs of software components and support for post-install operations.
 
 
 ## History
