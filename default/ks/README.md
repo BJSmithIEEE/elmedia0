@@ -92,9 +92,9 @@ mkIncFil 95opt STIG TPS
     ...
 ```
 
-> **IMPORTANT:**  Note the single (1) line (`# XXXXX INJECT_KSPRE XXXXX`).  This is **crucial** as the script injects (replaces) the contents of a file (`ks-elmedia.inject` -- see [ks-elmedia.inject](inject/ks-elmedia.inject)) with all the fucntions required for these functions (e.g., `mkIncFil`, along with figuring out net, block, et al. devices).
+> **IMPORTANT:**  Note the single (1) line (`# XXXXX INJECT_KSPRE XXXXX`) right after the start of Kickstart file section `%pre`.  This is **crucial** as the script injects (replaces) the contents of a file (`ks-elmedia.inject` -- see [ks-elmedia.inject](inject/ks-elmedia.inject)) with all the fucntions required for these functions (e.g., `mkIncFil`, along with figuring out net, block, et al. devices).
 
-> **WARNING:** Failure to include this exact line (`# XXXXX INJECT_KSPRE XXXXX`) in any custom Kickstart file will break the entire solution.
+> **WARNING:** Failure to include this exact line (`# XXXXX INJECT_KSPRE XXXXX`) right after the start of Kickstart file section `%pre` in any custom Kickstart file will break the entire solution.
 
 So other than the various `mkIncFil` calls in the `%pre` itself to generate different combinations of *'includes,'* the Kickstart files should be cookie-cutter templates of one another.
 
