@@ -6,8 +6,9 @@ This directory exists to create tarballs of, but not limited to, Additional Pack
 
 ## Overview
 
-*TODO*
+As part of the `elmedia0` Project, all scripts now use a function to retrieve the `opt` tarball(s) (e.g., `opt_STIG.8-validated.tar` and/or `opt_TPS.8-validated.tar` for EL8) from either a local Software Distribution (i.e., `./softdist/`) or a centralized server (defined in `./bin/custom.vars`).
 
+*TODO/finish*
 
 ## Additional Packages
 
@@ -85,7 +86,7 @@ As EL8, instead of using Ansible from the Fedora Project's Extra Packages for En
 
 > **TIP:**  See the [Red Hat Enterprise Linux Life Cycle](https://access.redhat.com/support/policy/updates/errata) page for a full discussion of how long RHEL is maintained, along with the ELS option.
 
-Instead of using Ansible from the Fedora Project's Extra Packages for Enterprise Linux (EPEL), we use the packages from the [CentOS Configuration Management (CM) / Ansible Special Interest Group (SIG) and their repositories (repos)](https://wiki.centos.org/SpecialInterestGroup/ConfigManagementSIG).  They match the long-term, sustained (with backported security fixes), dedicated Red Hat Enterprise Linux 'Ansible Engine' repositories (fka 'child channels') for each RHEL release.
+Instead of using Ansible from the Fedora Project's Extra Packages for Enterprise Linux (EPEL), we use the packages from the long-term, sustained (with backported security fixes, at least through 2023Q3) repositories for each release.
 
 * *now archived* [CentOS Configuration Management (CM) / Ansible Special Interest Group (SIG) and their repositories (repos)](https://wiki.centos.org/SpecialInterestGroup/ConfigManagementSIG)
 * *now redirects* [Red Hat Enterprise Linux 'Ansible Engine' repository (fka 'child channels') for each RHEL release](https://access.redhat.com/products/red-hat-ansible-engine/)
@@ -128,8 +129,27 @@ Current packages from RHEL Ansible Engine (note the `el7ae` 'disttag') Child Cha
 
 ## DISA STIG
 
+At this time, to automate the execution of various DISA STIG compliance support, a tarball must be provided for the EL-specific release (e.g., `opt_STIG.8-validated.tar` for EL8).  These are included on the media under the `/opt.8/STIG/` in the media, and copied to `/opt/STIG/` on an installed system, some possibly elsewhere (during post-install).
 
+### DoD CyberX
 
+The US DoD DISA Security Templates and Implementation Guides (STIGs), including Security Content Automation Protocol (SCAP), content for Red Hat Enterprise Linux (RHEL) and other operating system and application platforms are provided at the DoD Cyber Exchange.  Direct links to the Exchange include the following:  [Public STIG SCAP](https://public.cyber.mil/stigs/scap/) // [Public STIG Downloads](https://public.cyber.mil/stigs/downloads/) // [CAC STIG Downloads](https://cyber.mil/stigs/downloads/)
 
+The following components are installed/setup on a new system.
+
+* Ansible Playbooks for RHEL8 STIG -- e.g., `rhel8STIG-ansible.zip` inside the download `U_RHEL8_VxRy_Ansible.zip`, where `x`=version, `y`=revision.
+* NAVWAR SCAP Compliance Scanner (SCC) -- e.g., `scc-x.y.z.rhel8.x86_64.rpm` inside the download `scc-x.y.z_rhel8_oracle-linux8_x86_64_bundle.zip`, where `x.y.z` are the release/version/revision.
+
+> **WARNING:**  Enabling the Red Hat OpenSCAP Kickstart snippets for post-install for either DISA STIG or NIST CUI will prevent many of the Ansible Playbooks for RHEL8 STIG from DISA from playing correctly, and will result in an abnormally low score in SCC.  Only use the OpenSCAP tools to help identify what packages to install/not install, but remove the Kickstart snippets for post-install (`%post`)
+
+### Ansible Lockdown
+
+*TODO*
+
+## Third Party Software
+
+Specific tarball(s) (e.g., `opt_TPS.8-validated.tar` for EL8) include pre-installed, pre-run Third Party Software (TPS) and Ansible playbooks during Kickstart post-install (`%post`).
+
+*TODO*
 
 
