@@ -7,22 +7,29 @@ Build Bootable (e.g., BIOS/uEFI ISO9660 image or native uEFI VFAT USB devcies) E
 
 ## Overview
 
-The project tree has the following structure, each with their own README files.
+This Upstream (GitHub) `elmedia0` project tree has the following structure, each with their own README files.
 
-> ***TODO:*** *This should be a table* - to be far more readable
+**TABLE:  Upstream (GitHub) `elmedia0` Project**
+Top Level Directory (TLD) | Select Subdirectories  | Purpose                     | Notes (Alternatives)
+| --------: | ---------------------- | -------------------------------------- | :--------------------------------
+`elmedia0`[/bin/](./bin/) | *n/a* | Script binaries (e.g., `mkelmedia.sh`), functions (`elmedia.func`), plus example vars (`custom.vars.example`) | Do **not** modify, copy `custom.vars.example` to `custom.vars` (or site-specific `elmedia0.custom/bin/` project instead) and edit for site-specific variables
+`elmedia0`[/custom/](./custom/) | `hardcode/` `ks/` | Site-specific Boot Menu (`hardcode/`) and Kickstart Files/Includes (`ks/`) | Copy select files to modify from `./default/` to `./custom/` (or site-specific `elmedia0.custom/bin/` project instead) and then modify
+`elmedia0`[/default/](./default/) | `hardcode/` `ks/` | Default [Boot Menu](./default/hardcode/) (`hardcode/`) and Anaconda-Installer [Kickstart files/includes](./default/ks/) (`ks/`) | Do **not** modify, copy select files to `./custom/` (or site-specific `elmedia0.custom/bin/` project instead) and then modify
+`elmedia0`[/softdist/](./softdist/) | `bin/` | Local, manually mantained repository of Software [Distribution](#distribution) archive files (`*.tar`), such as [Ansible](#ansible) releases not included in vendor installation media  | General *'dumping ground'* for tarballs (instead of using a web server as configured in `customv.vars`) of Additional/Ansible YUM repos and Optional files to extract (`/opt/`), some executed post-install like DISA STIG Ansible Playbooks
+`elemdia0`[/staging/](./staging/) | `addlpkgs.7` `ansible.8` `opt.9` | Staging and cached area of downloaded/extracted Software Distribution files so they only need to be downlaoded/extracted once for subsequent builds | Use binary `bin/mkelean.sh` to *'clean up'* staging area and *force* re-downloads/re-extractions in the case of updated Software Distribution files
 
-* **`./elmedia0/bin/`** (see [./bin/](./bin/)) - Bash scripts, purposely under a `./bin`, for SELinux considerations (e.g., `# restorecon -Rv /opt/github/elmedia0/`)
-* **`./elmedia0/bin/`** - Alternative, separate, external location (to the `elmedia0` project) location for the site-specific Custom Variables (`./bin/custom.vars`) that may be maintained in another repository (e.g., in GitLab, et al.), and is preferred over `./elmedia0/bin/custom.vars`
-* **`./elmedia0/custom/` (see [./custom/](./custom/)) - Site-specific customiations to Boot Menu and Anaconda-Installer Kickstart, files/functions/includes
-* **`./elmedia0.custom/custom/`** - Alternative, separate, external location (to the `elmedia0` project) location that may be maintained by users in another repository (e.g., in GitLab, et al.), and is preferred over `./elmedia0/custom/`
-* **`./elmedia0/default/`** (see [./default/](./default/)) - Default elmedia0 [Boot Menu](./default/hardcode/) and Anaconda-Installer [Kickstart files/functions/includes](./default/ks/)  -- overridden by those files in `./elmedia0/custom/` (and `./elmedia0.custom/custom/`)
-* **`./elmedia0/softdist/`** (see [./softdist/](./softdist/)) - A local, manually maintained repository of software distribution archive files, instead of storing on a centralized web server -- see the sections [Ansible](#ansible) and [Distribution](#distribution) -- for inclusion of Additional Packages (not in the base CentOS/Stream media), Ansible (e.g., 2.9 for EL7/8 install-time only) and Optional trees (i.e., under `/opt/`) on newly built systems, including Ansible DISA STIG playbooks
-* **`./elmedia0/staging/`** (see [./staging/](./staging/)) - A temporary downloading/staging area of softawre distribution archive files when building that is **not** cleared after each execution (caches downloads/extractions from a web server or `./softdist/`)
+Optionally, users may maintain their own, peer directory/project tree to keep the `./custom/` TLD outside of the Upstream (and GitHub maintained) project.  This tree will override both the `./default/` and `./custom/` trees of the `elmedia0` project.
+
+**TABLE:  [Optional] Site-Specific `elmedia0.custom` Peer Directory/Project**
+Top Level Directory (TLD) | Select Subdirectories  | Purpose                     | Notes (Alternatives)
+| --------: | ---------------------- | -------------------------------------- | :--------------------------------
+`elmedia.custom`/bin/ | *n/a* | As `elmedia0`[/bin/](./bin/), site-specific vars (`custom.vars`) copied from `elmedia0/bin` | Maintained outside of the Upstream `elmedia0` Project, and overrides all other `custom.vars` files  
+`elmedia.custom`/custom/ | `hardcore/` `ks/` | As `elmedia0`[/custom/](./custom/),  site-specific Boot Menu (`hardcode/`) and Kickstart Files/Includes (`ks/`) | Maintained outside of the Upstream `elmedia0` Project, and overrides all other `./custom/` files
 
 
 ## Quickstart
 
-To begin building your first ISO or USB, reference the following syntax.
+To begin building your first ISO image or USB device, reference the following syntax.
 
 > **TIP:**  The script can be run from anywhere, and will auto-revolve it's parent and other directories to the tree is accessible.  It usually works with most symlinks for directories as well (have tested several scenarios).
 
