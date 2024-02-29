@@ -24,10 +24,20 @@ The Kickstart files use a modular system of [Kickstart 'include' files](include/
 
 The 'compilation' is done in the `%pre` block of the Kickstart files themselves.
 
-E.g., again, this is done in `/tmp` memory upon booting an ISO or USB on a system, then used.
+> **TIP:**  Until the system is full built, and logs are moved into `/var/log/anaconda/` (technically `/mnt/sysimage/var/log/anaconda` while running), the in-memory directory `/tmp/` contains all temporary Kickstart files (`/tmp/*.ks`), all Kickstart include files (`/tmp/ks-*.inc`) and the very helpeful (for troubleshooting) `%pre` log (`/tmp/ks-script_elmedia-pre.log`) as well as other logs (`/tmp/*.log`) with various STDOUT.
 
 ``` shell
+###############################################################################
+### EL7 - Kickstart - Xxxxxxxx
+###############################################################################
+### metaFilename:xxxxx
+### metaShortname:Xxxxxxxx Xxxxxxxx
+### metaDescription:Xxxxxxxx Xxxxxxxx Xxxxxxxx Xxxxxxxx Xxxxxxxx Xxxxxxxx Xxxxxxxx Xxxxxxxx
+
+###     Base - Install
     ...
+
+
 ###	PRE
 %pre --log /tmp/ks-script_elmedia-pre.log
 echo -e "\n===============\n[elmedia]\tKickstart %pre\n===============\n"
@@ -76,9 +86,15 @@ mkIncFil 95opt STIG TPS
 
 ## %pre - end
 %end
+
+
+###     Base - Locale
+    ...
 ```
 
-> **IMPORTANT:**  Note the single (1) line (`# XXXXX INJECT_KSPRE XXXXX`).  This is **crucial** as the script injects (replaces) the contents of a file (`ks-elmedia.inject` -- see [ks-elmedia.inject](inject/ks-elmedia.inject)) with all the fucntions required for these functions (e.g., `mkIncFil`, along with figuring out net, block, et al. devices).  Failure to include this line in custom Kickstart files will break the solution.
+> **IMPORTANT:**  Note the single (1) line (`# XXXXX INJECT_KSPRE XXXXX`).  This is **crucial** as the script injects (replaces) the contents of a file (`ks-elmedia.inject` -- see [ks-elmedia.inject](inject/ks-elmedia.inject)) with all the fucntions required for these functions (e.g., `mkIncFil`, along with figuring out net, block, et al. devices).
+
+> **WARNING:** Failure to include this exact line (`# XXXXX INJECT_KSPRE XXXXX`) in any custom Kickstart file will break the entire solution.
 
 So other than the various `mkIncFil` calls in the `%pre` itself to generate different combinations of *'includes,'* the Kickstart files should be cookie-cutter templates of one another.
 
@@ -110,6 +126,8 @@ Followed by a two (2) digit order, and a brief, three (3) letter abbreviation, w
 * `80add` - Additional includes
 * `90pst` - `%post` install core configuration includes and setup
 * `95opt` - `%post` install optional Software Distribution includes and setup
+
+> **TIP:**  While the system is building, the the in-memory directory `/tmp/` contains all the actual, *'compiled'* Kickstart include files (`/tmp/ks-*.inc`).  This is key to troubleshooting issues with any custom Kickstart files and/or custom Kickstart *include* files.  E.g., the file for any `mkIncFil 45sto ...` line in a custom Kickstart file would be output as `/tmp/ks-45sto.inc`, and would contain any and all includes files that begin with `ks-elX-45sto-*.inc` referenced.
 
 
 ### Example Change or Augmentation
