@@ -1,3 +1,3 @@
 ## Kickstart Includes
 
-See preceding [Kickstart README.md Section 'Include Files'](../README.md#include-files) for more information.
+See preceding [Kickstart README.md Section 'Understanding Include Files'](../README.md#understanding-include-files) for more information.
