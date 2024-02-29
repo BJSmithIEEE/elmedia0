@@ -9,11 +9,11 @@ The following three (3) Kickstart files have been created and may be updated to 
 
 * **[ks-el8-00def.ks](ks-el8-00def.ks)**, **[ks-el7-00def.ks](ks-el7-00def.ks)** - Default Headless with local /home and /opt, no OpenSCAP, STIG Ansible Playbooks (**default**)
 * **[ks-el8-01noluks.ks](ks-el8-01noluks.ks)**, **[ks-el7-01noluks.ks](ks-el7-01noluks.ks)** - As Headless (default), with local /home and /opt, no OpenSCAP, STIG Ansible Playbooks, **but** no LUKS volume encryption (e.g., block store is already hardware/host encrypted *'at rest'*)
-* **[ks-el8-deskdevel.ks](ks-el8=deskdevel.ks)**, **[ks-el7-deskdevel.ks](ks-el7-00diskdevel.ks)** - Desktop Developer with local /home and /opt, no OpenSCAP, STIG Ansible Playbooks (GUI *'out-of-the-box'*)
+* **[ks-el8-deskdevel.ks](ks-el8-deskdevel.ks)**, **[ks-el7-deskdevel.ks](ks-el7-deskdevel.ks)** - Desktop Developer with local /home and /opt, no OpenSCAP, STIG Ansible Playbooks (GUI *'out-of-the-box'*)
 
-> **WARNING:** At this time, these three (3) Kickstart files are [hardcoded in the ISO/USB boot files](../default/hardcode), and only a find/replace is done for the ISO/USB media label.  In the future there will be a dynamic menu generator that re-generates the boot menus from files in this subdirectory (including the `./custom/ks/` that overrides `./default/ks/`).
+> **STATUS:** At this time, these three (3) Kickstart files are [hardcoded in boot files](../hardcode/) copied to the ISO/USB, and only a find/replace is done for the ISO/USB media label.  In the future there will be a dynamic menu generator that re-generates the boot menus from files in this subdirectory.  This includes those under the subdirectory path `./custom/ks/`, under either a parent, Project directory `./elmedia0/` or `./elmedia0.custom/`, that overrides `./default/ks/`.
 
-> **TIP:**  Depending on the filesystem requirements of DISA STIG, the minimum disk size requirements, but `60GB` (`55.9GiB`) should be considered the minimum, and `120GB` (`111.8GiB`) is a better minimum.  Around (and beyond) `240GB` (`223.5GiB`), the volume group will have unused storage, as the dynamic file system sizing will hit limits.
+> **TIP:**  Storage Requirements - Depending on the filesystem requirements of DISA STIG, the minimum disk size requirements, but `60GB` (`55.9GiB`) should be considered the *'universal minimum'*, and `120GB` (`111.8GiB`) is a better minimum.  Around (and beyond) `240GB` (`223.5GiB`), the volume group will have unused storage, as the dynamic file system sizing will hit limits.  Size VM storage accordingly.
 
 
 ## Understanding Include Files
@@ -129,7 +129,7 @@ Now let's say a new package list that is needed by multiple Desktop and Server K
 ** modify the existing `mkIncFil 65pkg` line in the `%pre` block of the select Kickstart file(s) and append `someneed`, or ...
 ** copy'n paste the existing `mkIncFil 65pg` line as a new, following line, and append `someneed`
 
-E.g., for the two (2) EL8 Headless Server Kickstarts -- ([ks-el7-00def.ks](ks-el7-00def.ks) and [ks-el7-01noluks.ks](ks-el7-01noluks.ks) -- the *'modify'* option would result the following. 
+E.g., for the two (2) EL8 Headless Server Kickstarts -- [ks-el7-00def.ks](ks-el7-00def.ks) and [ks-el7-01noluks.ks](ks-el7-01noluks.ks) -- the *'modify'* option would result the following. 
 ``` shell
 # 65pkg - Packages - COMPS Packages and Roles
 mkIncFil 65pkg 00def ansible scc tpm2 someneed
@@ -156,13 +156,17 @@ The default configuration
 mkIncFil 90pst 00def 00el0_home 00el0_sshsudo clevis_common dracut_clevis_none
 ``` 
 
-#### Default and Users
+#### Defaults and Users
 
+*TODO*
 
 
 #### LUKS with Clevis
 
-Clevis provides a way for boot-time decryption, even auto-decryption, of storage by either local **TPM2 IC** on-board hardware, or even remote keystore via a **Tang Server**.
+Clevis provides a way for boot-time decryption, even auto-decryption, of storage.  The latter two (2) may be done by either the following.
+
+1.  Hardware **TPM 2.x compatible IC** on-board, or ...
+2.  Remotely retrieved keystore via a **Tang Server** - requiring the system to be connected to the network to auto-decrypt
 
 ``` shell
 # 90pst - Post - Post-Install
@@ -170,6 +174,8 @@ mkIncFil 90pst 00def 00el0_home 00el0_sshsudo clevis_common dracut_clevis_none
 # custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tpm2
 # custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tang
 ```
+
+*TODO/finish*
 
 ### Optional Software Distribution
 
