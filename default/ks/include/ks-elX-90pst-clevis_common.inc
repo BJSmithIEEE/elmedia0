@@ -36,10 +36,10 @@ cat << 'EOF' > '/root/clevis_tang-luks_bind.sh'
 #       /root/clevis_tang-luks_bind.sh
 #       Example script to use clevis luks bind to tang server
 #
-fictTang="http://tang.mydomain.com:7500"
-myTang="${fictTang}"     # my tang server (modify)
+fictTang="http://tang.mydomain.com:7500"	# do NOT modify this line
+myTang="${fictTang}"     			# my tang server (modify this line)
 
-if [ "${myTang}" == "${fictTang}" ] ; then
+if [ "${myTang}" == "" ] || [ "${myTang}" == "${fictTang}" ] ; then
 	echo -e "\n*****\tModify this script to use your Tang server http://address[:port] (myTang=)\n"
 else
 	# Enable systemd to watch Clevis service and ask for password

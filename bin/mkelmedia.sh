@@ -11,30 +11,31 @@
 
 ###	Globals
 
-# Parameters
-myCwd="$(pwd)"
-myNam="$(basename ${0})"
-myBas0="$(dirname ${0})"
-myBas="$(/usr/bin/readlink -f ${myBas0})"
-myDir="$(/usr/bin/readlink -f ${myBas0}/../)"
-myCus="$(/usr/bin/readlink -f ${myBas0}/../../elmedia0.custom/)"
-myCcd="$(/usr/bin/readlink -f ${myCus}/custom/)"
-# if myCcd (per elmedia0.custom/custom) doesn't exist, just use 'custom' directory inside of Upstream elmedia0/custom
-if [ "${myCcd}" == "" ] || [ ! -d "${myCcd}" ] ; then
-	myCcd="${myDir}/custom/"
-fi
-# Evaluate positional and optional parameters (this needs to be re-written to do bash getopts proper) 
+# Evaluate positional and optional parameters (this needs to be re-written to do bash getopts proper)
 let gOverParm=0
 if [ "${1}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; myOut="${1}"
 if [ "${2}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; myDst="${2}"
 if [ "${3}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; mySrc="${3}"
 if [ "${4}" == "-f" ] ; then let gOverParm=1 ; shift ; fi ; myLbl="${4}"
 if [ "${5}" == "-f" ] ; then let gOverParm=1 ; shift ; fi 
+# Other Parameters and Globals
+myCwd="$(pwd)"
+myNam="$(basename ${0})"
+myBas0="$(dirname ${0})"
+myBas="$(/usr/bin/readlink -f ${myBas0})"
+myDir="$(/usr/bin/readlink -f ${myBas0}/../)"
+myEl0="$(/usr/bin/readlink -f ${myBas0}/../)"
+myCus="$(/usr/bin/readlink -f ${myBas0}/../../elmedia0.custom/)"
+myCcd="$(/usr/bin/readlink -f ${myCus}/custom/)"
+# if myCcd (per elmedia0.custom/custom) doesn't exist, just use 'custom' directory inside of Upstream elmedia0/
+if [ "${myCcd}" == "" ] || [ ! -d "${myCcd}" ] ; then
+	myCcd="${myEl0}/custom/"
+fi
 
 ###     Source Common Functions/Globals
-. "${myDir}/bin/elmedia.func"
+. "${myEl0}/bin/elmedia.func"
 # Look for custom variables in elmedia0 project directory
-[ -r "${myDir}/bin/custom.vars" ] && . "${myDir}/bin/custom.vars"
+[ -r "${myEl0}/bin/custom.vars" ] && . "${myEl0}/bin/custom.vars"
 # Look for custom variables in optional, end-user created, elmedia0.custom project ./bin subdirectory as overrides
 [ -r "${myCus}/bin/custom.vars" ] && . "${myCus}/bin/custom.vars"
 

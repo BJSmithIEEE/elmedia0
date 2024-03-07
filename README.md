@@ -15,7 +15,7 @@ Top Level Directory (TLD) | Select Subdirectories  | Purpose                    
 `elmedia0`[/bin/](./bin/) | *n/a* | Script binaries (e.g., `mkelmedia.sh`), functions (`elmedia.func`), plus example vars (`custom.vars.example`) | Do **not** modify, copy `custom.vars.example` to `custom.vars` (or site-specific `elmedia0.custom/bin/` project instead) and edit for site-specific variables
 `elmedia0`[/custom/](./custom/) | `hardcode/` `ks/` | Site-specific Boot Menu (`hardcode/`) and Kickstart Files/Includes (`ks/`) | Copy select files to modify from `./default/` to `./custom/` (or site-specific `elmedia0.custom/bin/` project instead) and then modify
 `elmedia0`[/default/](./default/) | `hardcode/` `ks/` | Default [Boot Menu](./default/hardcode/) (`hardcode/`) and Anaconda-Installer [Kickstart files/includes](./default/ks/) (`ks/`) | Do **not** modify, copy select files to `./custom/` (or site-specific `elmedia0.custom/bin/` project instead) and then modify
-`elmedia0`[/softdist/](./softdist/) | `bin/` | Local, manually mantained repository of Software [Distribution](#distribution) archive files (`*.tar`), such as [Ansible](#ansible) releases not included in vendor installation media  | General *'dumping ground'* for tarballs (instead of using a web server as configured in `customv.vars`) of Additional/Ansible YUM repos and Optional files to extract (`/opt/`), some executed post-install like DISA STIG Ansible Playbooks
+`elmedia0`[/softdist/](./softdist/) | `bin/` `opt.7/` `opt.8/` `opt.9` | Local, manually mantained repository of Software [Distribution](#distribution) archive files (`*.tar`), such as [Ansible](#ansible) releases not included in vendor installation media  | General *'dumping ground'* for tarballs (instead of using a web server as configured in `customv.vars`) of Additional/Ansible YUM repos and Optional files to extract (`/opt/`), some executed post-install like DISA STIG Ansible Playbooks
 `elemdia0`[/staging/](./staging/) | `addlpkgs.7` `ansible.8` `opt.9` | Staging and cached area of downloaded/extracted Software Distribution files so they only need to be downlaoded/extracted once for subsequent builds | Use binary `bin/mkelean.sh` to *'clean up'* staging area and *force* re-downloads/re-extractions in the case of updated Software Distribution files
 
 Optionally, users may maintain their own, peer directory/project tree to keep the `./custom/` TLD outside of the Upstream (and GitHub maintained) project.  This tree will override both the `./default/` and `./custom/` trees of the `elmedia0` project.
@@ -25,6 +25,7 @@ Top Level Directory (TLD) | Select Subdirectories  | Purpose                    
 | --------: | ---------------------- | -------------------------------------- | :--------------------------------
 `elmedia.custom`/bin/ | *n/a* | As `elmedia0`[/bin/](./bin/), site-specific vars (`custom.vars`) copied from `elmedia0/bin` | Maintained outside of the Upstream `elmedia0` Project, and overrides all other `custom.vars` files  
 `elmedia.custom`/custom/ | `hardcore/` `ks/` | As `elmedia0`[/custom/](./custom/),  site-specific Boot Menu (`hardcode/`) and Kickstart Files/Includes (`ks/`) | Maintained outside of the Upstream `elmedia0` Project, and overrides all other `./custom/` files
+`elmedia.custom`/softdist/ | `bin/` `opt.7/` `opt.8/` `opt.9/`| As `elmedia0`[/softdist/](./softdist/),  site-specific, manually maintained repository of Software Distribution archive files (`*.tar`)  Maintained outside the Upstream `elmedia0` Project, and overrides all over `./softdist/` files
 
 
 ## Quickstart
@@ -66,6 +67,16 @@ Optionally, an ISO or USB label may be passed as the fourth argument, but the US
 > **IMPORTANT:**  `mkelmedia.sh` has only been tested under GNU/Linux, various MinSys/MinGW solutions (e.g., Git Shell), various Cygwin solutions (e.g., MobaXterm, with added packages), and may or may not work under some WSL2 distributions and/or Powershell.
 
 > **TIP:**  Ensure all text files are UTF-8 with CR/LF.  E.g., in Git, configure with with `autocflf` (`git config --global core.autocrlf 'input'`).  Not doing so will result in errors at `%pre` after boot of the media such as messages like *'file not found'* (the all-important Kickstart include files).
+
+Default passwords are as follows.
+
+* LUKS slot 0 (`elmedia0!`) - Unless NOLUKS Kickstart Boot Menu option is used
+* `sysadmin` (`elmedia0!`) - Default system administrator, and part of `wheel` group and may `sudo` any command (w/password)
+* `ansadmin` (`elmedia0!`) - Default ansible controller user, not part of `wheel` group, but may `sudo` any command (w/password)
+
+> **TIP:** Default user accounts have home directories on the root (`/`) file system, under a subdirectory (`/homesys/`), so `exec` is allowed (unlike `/home`).  All added users will be put added to the separate filesystem (`/home`).
+
+> **WARNING:** When creating a custom Kickstart file and/or includes, unlike user accounts, the LUKS Password cannot be hashed in the Kickstart file, and must be cleartext.  As such, it is strongly rerecommended you do **NOT** change the Kickstart LUKS password, and modify after build.
 
 
 ## Ansible

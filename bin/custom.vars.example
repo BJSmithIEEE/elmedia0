@@ -7,9 +7,9 @@
 #       Custom Variables for making uEFI Bootable USB devices (baremetal) and ISO images (virtualization)
 
 ###     Varibles - Overwrites those in ./elmedia0/bin/elmedia.func
-gSvrUri='http://softdist.mydomain.com'  # Software distribution tarballs - HTTP[S] server hostname (with leading http[s]://)
-gSvrTar='pub/elmedia/tar'               # Software distribution tarballs - HTTP[S] server path
-myOpt="STIG TPS"                        # Tarballs of Optional Files to Include (user provided)
-myPkg="addlpkgs ansible"                # Tarballs of Packages to Include (distribution or third party software provided)
-let gAnsVer=29                          # Ansible Version pre-Stream/RHEL 9 (Stream/RHEL 7/8)
+gSvrUri='http://softdist.mydomain.com'  	# Software distribution tarballs - HTTP[S] server hostname (with leading http[s]://)
+gSvrTar='pub/elmedia/tar'               	# Software distribution tarballs - HTTP[S] server path
+myOpt="cyberx_scc cyberx_stig lockdown_stig"	# Tarballs of Optional Files to Include (user provided)
+myPkg="addlpkgs ansible"                	# Tarballs of Packages to Include (distribution or third party software provided)
+let gAnsVer=29                          	# Ansible Version pre-Stream/RHEL 9 (Stream/RHEL 7/8)
 
