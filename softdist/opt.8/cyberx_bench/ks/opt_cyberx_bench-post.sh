@@ -1,5 +1,5 @@
 #
-#       /opt/cyberx_bench/opt_cyberx_bench-post.sh
+#       /opt/cyberx_bench/ks/opt_cyberx_bench-post.sh
 #
 
 ### GLOBALS

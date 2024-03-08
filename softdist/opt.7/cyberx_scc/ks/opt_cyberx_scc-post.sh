@@ -4,7 +4,7 @@
 
 ### GLOBALS
 
-elVerRel="8"
+elVerRel="7"
 myOpt="cyberx_scc"	# Tooling
 ADM_USR="1000:1000"	# Administrative User/Group
 sccVen="rhel${elVerRel}"

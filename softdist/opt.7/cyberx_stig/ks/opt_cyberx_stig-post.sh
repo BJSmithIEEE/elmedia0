@@ -1,11 +1,11 @@
 #
-#       /opt/cyberx_play/opt_cyberx_play-post.sh
+#       /opt/cyberx_stig/ks/opt_cyberx_stig-post.sh
 #
 
 ### GLOBALS
 
-elVerRel="8"
-myOpt="cyberx_play"	# Tooling
+elVerRel="7"
+myOpt="cyberx_stig"	# Tooling
 ADM_USR="1000:1000"	# Administrative User/Group
 
 

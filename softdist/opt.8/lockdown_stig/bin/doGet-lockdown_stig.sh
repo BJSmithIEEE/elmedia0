@@ -17,6 +17,7 @@ myCwd="$(pwd)"
 myNam="$(basename ${0})"
 myBas0="$(dirname ${0})"
 myBas="$(/usr/bin/readlink -f ${myBas0})"
+myDir="$(/usr/bin/readlink -f ${myBas0}/../)"
 let myRel=myEl
 [ $? -ne 0 ] && exit 1
 [ ${myRel} -lt 10 ] && myRel="0${myEl}"
@@ -31,13 +32,14 @@ myDt="$(date +%s_%Y%b%d)"
 ###	MAIN
 
 # Get Ansible-Lockdown RHEL STIG
-if [ "${gitPrj}" != "" ] && [ -e "${gitPrj}" ] ; then
-	cd "${myBas}/${gitPrj}/"
+if [ "${gitPrj}" != "" ] && [ -e "cloned/${gitPrj}" ] ; then
+	cd "${myDir}/cloned/${gitPrj}/"
 	git pull
 	[ $? -ne 0 ] && exit 2
-	cd "${myBas}"
+	cd "${myDir}"
 elif [ "${gitPnt}" != "" ] && [ "${gitPrj}" != "" ] ; then
-	cd "${myBas}"
+	[ ! -e "${myDir}/cloned" ] && mkdir "${myDir}/cloned" 2>> /dev/null
+	cd "${myDir}/cloned"
 	git clone https://github.com/${gitPnt}/${gitPrj}.git
 	[ $? -ne 0 ] && exit 2
 else
@@ -45,26 +47,26 @@ else
 fi
 
 # Remove any appended elmedia0-related lines in site.yaml
-cd "${myBas}"
-/usr/bin/sed -i '/^### elmedia0 software distribution - do NOT append below this line ###.*$/Q' RHEL8-STIG/site.yml
+cd "${myDir}"
+/usr/bin/sed -i '/^### elmedia0 software distribution - do NOT append below this line ###.*$/Q' cloned/${gitPrj}/site.yml
 
 # Blacklist all Cat-I/II/III remediations by default
-myBlk="$(cat ${gitPrj}/tasks/*.yml | sed -n "s/^.*\(rhel_${myRel}_[0-9]\{6,6\}\)[^0-9]*$/\1/p" | sort -u)"
-echo -e "### elmedia0 software distribution - do NOT append below this line ###" >> ${gitPrj}/site.yml
-echo -e "  vars:" >> ${gitPrj}/site.yml
+myBlk="$(cat cloned/${gitPrj}/tasks/*.yml | sed -n "s/^.*\(rhel_${myRel}_[0-9]\{6,6\}\)[^0-9]*$/\1/p" | sort -u)"
+echo -e "### elmedia0 software distribution - do NOT append below this line ###" >> cloned/${gitPrj}/site.yml
+echo -e "  vars:" >> cloned/${gitPrj}/site.yml
 for b in ${myBlk} ; do
-	echo -e "    - ${b}: false" >> ${gitPrj}/site.yml
+	echo -e "    - ${b}: false" >> cloned/${gitPrj}/site.yml
 done
 
 # Whitelist designated remediations
 for l in ${myCat1} ; do
-	sed -i "s/rhel_${myRel}_${l}[:].*$/rhel_${myRel}_${l}: true  # remediate Cat-I/g" RHEL8-STIG/site.yml
+	sed -i "s/rhel_${myRel}_${l}[:].*$/rhel_${myRel}_${l}: true  # remediate Cat-I/g" cloned/${gitPrj}/site.yml
 done
 for l in ${myCat2} ; do
-	sed -i "s/rhel_${myRel}_${l}[:].*$/rhel_${myRel}_${l}: true  # remediate Cat-II/g" RHEL8-STIG/site.yml
+	sed -i "s/rhel_${myRel}_${l}[:].*$/rhel_${myRel}_${l}: true  # remediate Cat-II/g" cloned/${gitPrj}/site.yml
 done
 for l in ${myCat3} ; do
-	sed -i "s/rhel_${myRel}_${l}[:].*$/rhel_${myRel}_${l}: true  # remediate Cat-III/g" RHEL8-STIG/site.yml
+	sed -i "s/rhel_${myRel}_${l}[:].*$/rhel_${myRel}_${l}: true  # remediate Cat-III/g" cloned/${gitPrj}/site.yml
 done
 
 # Return to original directory
