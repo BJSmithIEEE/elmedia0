@@ -1,4 +1,4 @@
-### ks/include/ks-elX-80add-openscap_stig.inc
+### ks/include/ks-elX-85add-openscap_stig.inc
 
 # OpenSCAP Security Profile - DISA STIG
 %addon org_fedora_oscap

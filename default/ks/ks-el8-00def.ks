@@ -53,16 +53,21 @@ mkIncFil 65pkg 00def ansible scc tpm2
 # 80add - Add-ons - Various add-ons
 mkIncFil 80add 00def
 
+# 85pol - Policy - Built-in Security Policy
+mkIncFil 85pol anaconda_passwd
+# OpenSCAP NIST CUI - Use CyberX and/or Lockdown Instead # mkIncFil 85pol anaconda_passwd openscap_cui
+# OpenSCAP DISA STIG - Use CyberX and/or Lockdown Instead # mkIncFil 85pol anaconda_passwd openscap_stig
+
 # 90pst - Post - Post-Install
 mkIncFil 90pst 00def 00el0_home 00el0_sshsudo clevis_common dracut_clevis_none
 # custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tpm2
 # custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tang
 
 # 95opt - Post - Optional Software
-mkIncFil 95opt STIG TPS
-# custom # mkIncFil 95opt STIG TPS cus
+mkIncFil 95opt cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig
+# custom w/Third Party Software # mkIncFil 95opt cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig TPS cus
 
-# %pre - end
+## %pre - end
 %end
 
 
@@ -104,9 +109,10 @@ selinux --enforcing
 %end
 
 
-###     Add-ons
+###     Add-ons and Policy
 
 %include /tmp/ks-80add.inc
+%include /tmp/ks-85pol.inc
 
 
 ###	POST (nochroot)

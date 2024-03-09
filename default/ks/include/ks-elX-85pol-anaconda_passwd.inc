@@ -1,4 +1,4 @@
-### ks/include/ks-elX-80add-anaconda_passwd.inc
+### ks/include/ks-elX-85add-anaconda_passwd.inc
 
 # Red Hat Anaconda-enforced - Password Security Policy
 %anaconda

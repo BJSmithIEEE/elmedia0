@@ -1,4 +1,4 @@
-### ks/include/ks-elX-80add-openscap_cui.inc
+### ks/include/ks-elX-85add-openscap_cui.inc
 
 # OpenSCAP Security Profile - NIST CUI
 %addon org_fedora_oscap
