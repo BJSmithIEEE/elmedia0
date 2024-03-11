@@ -23,9 +23,9 @@ Optionally, users may maintain their own, peer directory/project tree to keep th
 **TABLE:  [Optional] Site-Specific `elmedia0.custom` Peer Directory/Project**
 Top Level Directory (TLD) | Select Subdirectories  | Purpose                     | Notes (Alternatives)
 | --------: | ---------------------- | -------------------------------------- | :--------------------------------
-`elmedia.custom`/bin/ | *n/a* | As `elmedia0`[/bin/](./bin/), site-specific vars (`custom.vars`) copied from `elmedia0/bin` | Maintained outside of the Upstream `elmedia0` Project, and overrides all other `custom.vars` files  
-`elmedia.custom`/custom/ | `hardcore/` `ks/` | As `elmedia0`[/custom/](./custom/),  site-specific Boot Menu (`hardcode/`) and Kickstart Files/Includes (`ks/`) | Maintained outside of the Upstream `elmedia0` Project, and overrides all other `./custom/` files
-`elmedia.custom`/softdist/ | `bin/` `opt.7/` `opt.8/` `opt.9/`| As `elmedia0`[/softdist/](./softdist/),  site-specific, manually maintained repository of Software Distribution archive files (`*.tar`)  Maintained outside the Upstream `elmedia0` Project, and overrides all over `./softdist/` files
+`elmedia0.custom`/bin/ | *n/a* | As `elmedia0`[/bin/](./bin/), site-specific vars (`custom.vars`) copied from `elmedia0/bin` | Maintained outside of the Upstream `elmedia0` Project, and overrides all other `custom.vars` files  
+`elmedia0.custom`/custom/ | `hardcore/` `ks/` | As `elmedia0`[/custom/](./custom/),  site-specific Boot Menu (`hardcode/`) and Kickstart Files/Includes (`ks/`) | Maintained outside of the Upstream `elmedia0` Project, and overrides all other `./custom/` files
+`elmedia0.custom`/softdist/ | `bin/` `opt.7/` `opt.8/` `opt.9/`| As `elmedia0`[/softdist/](./softdist/),  site-specific, manually maintained repository of Software Distribution archive files (`*.tar`)  Maintained outside the Upstream `elmedia0` Project, and overrides all over `./softdist/` files
 
 
 ## Quickstart
@@ -74,7 +74,7 @@ Default passwords are as follows.
 * `sysadmin` (`elmedia0!`) - Default system administrator, and part of `wheel` group and may `sudo` any command (w/password)
 * `ansadmin` (`elmedia0!`) - Default ansible controller user, not part of `wheel` group, but may `sudo` any command (w/password)
 
-> **TIP:** Default user accounts have home directories on the root (`/`) file system, under a subdirectory (`/homesys/`), so `exec` is allowed (unlike `/home`).  All added users will be put added to the separate filesystem (`/home`).
+> **TIP:** Default *'system'* user accounts have home directories on the root (`/`) file system, under a subdirectory (`/homesys/`), so `exec` is allowed (unlike `/home/`).  All added users will be put added to the separate filesystem (`/home/`).
 
 > **WARNING:** When creating a custom Kickstart file and/or includes, unlike user accounts, the LUKS Password cannot be hashed in the Kickstart file, and must be cleartext.  As such, it is strongly rerecommended you do **NOT** change the Kickstart LUKS password, and modify after build.
 
