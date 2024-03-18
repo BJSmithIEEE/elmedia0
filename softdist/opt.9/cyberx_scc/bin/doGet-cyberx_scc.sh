@@ -5,12 +5,14 @@
 ###     Globals
 
 # SCAP Benmhmark/Tool releases/versions
-myEl="8"
-bchScp="1-2"
+myEl="9"
 
-# DoD CyberX - DISA STIG Benchmark (defaults to Public URL)
-bchVer="V1R12"
-bchArcFil="U_RHEL_${myEl}_${bchVer}_STIG_SCAP_${bchScp}_Benchmark.zip"
+# DoD CyberX - NAVWAR Security Content Checker (SCC) (defaults to public URL)
+sccVen="rhel${myEl}"
+sccVen2="oracle-linux${myEl}"
+sccVer="5.8"
+sccArcFil="scc-${sccVer}_${sccVen}_x86_64_bundle.zip"
+sccArcGpg="RPM-GPG-KEY-scc-5.zip"
 
 # Other Parameters and Globals
 myCwd="$(pwd)"
@@ -33,9 +35,9 @@ myDt="$(date +%s_%Y%b%d)"
 
 cd "${myDir}"
 # Get Archive(s)
-for f in "${bchArcFil}" ; do
-        /usr/bin/curl -kpso "${f}" "https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/${f}"
-        /usr/bin/unzip -d ./extracted "${f}"
+for f in "${sccArcFil}" "${sccArcGpg}" ; do
+	/usr/bin/curl -kpso "${f}" "https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/${f}"
+	/usr/bin/unzip -d ./extracted "${f}"
 	/bin/rm -f "${f}"
 done
 

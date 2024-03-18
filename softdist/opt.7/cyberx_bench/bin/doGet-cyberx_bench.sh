@@ -4,12 +4,12 @@
 
 ###     Globals
 
-# sCAP Benmhmark/Tool releases/versions
+# SCAP Benmhmark/Tool releases/versions
 myEl="7"
+bchScp="1-2"
 
 # DoD CyberX - DISA STIG Benchmark (defaults to Public URL)
 bchVer="V3R14"
-bchScp="1-2"
 bchArcFil="U_RHEL_${myEl}_${bchVer}_STIG_SCAP_${bchScp}_Benchmark.zip"
 
 # Other Parameters and Globals
