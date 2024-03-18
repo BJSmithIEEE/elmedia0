@@ -54,7 +54,7 @@ outSyntax() {
 	                                if [ $? -eq 0 ] ; then
 	                                        for e in * ; do
 	                                                if [ -d "${e}" ] && [ "${e}" != "bin" ] ; then
-	                                                        echo -e "\t\t  ${outRel}\t ${e}"
+	                                                        echo -e "\t\t  ${outRel}\t [opt/]${e}"
 	                                                fi
 	                                        done
 	                                fi
@@ -99,8 +99,14 @@ for c in "${myCsd}" "${myDir}" ; do
 			myIn="${e}"
 			echo -e "\nCreating tarball(${myOut}/${myTar}.${myRel}-${myDt}.tar) ...\n\tfrom subdirectory(./${myTar}.${myRel}/)\n\tin directory(${c}/)\n"
 			cd "${c}"
-			#       Don't bother with extended attributes/SELinux - they won't be preserved on installer media
-	                /usr/bin/tar cvf "${myOut}/${myTar}.${myRel}-${myDt}.tar" "./${d}"
+			#       Don't bother with extended attributes/SELinux - they may have not been preserved (if running under non-GNU/Linux)
+			if [ "${d}" != "opt.${myRel}/${myTar}" ] ; then
+				# Not an optional package, don't prefix anything
+		                /usr/bin/tar cvf "${myOut}/${myTar}.${myRel}-${myDt}.tar" "./${d}"
+			else
+				# Prefix opt_ into name (optional package)
+		                /usr/bin/tar cvf "${myOut}/opt_${myTar}.${myRel}-${myDt}.tar" "./${d}"
+			fi
 		fi
 		cd "${myCwd}"
 	done
