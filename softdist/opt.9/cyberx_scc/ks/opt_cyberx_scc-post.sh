@@ -15,13 +15,13 @@ sccVer="5.8"
 
 ### SCC
 # Install NAVWAR SCC GPG Key
-if [ -r "/opt/${myOpt}/extracted/RPM-GPG-KEY-scc${sccVer}" ] ; then
-	/bin/cp  "/opt/${myOpt}/extracted/RPM-GPG-KEY-scc${sccVer}" "/etc/pki/rpm-gpg/"
-	/usr/bin/rpm --import "/opt/${myOpt}/extracted/RPM-GPG-KEY-scc${sccVer}"
+if [ -r "/opt/${myOpt}/extracted/RPM-GPG-KEY-scc-${sccVer}" ] ; then
+	/bin/cp  "/opt/${myOpt}/extracted/RPM-GPG-KEY-scc-${sccVer}" "/etc/pki/rpm-gpg/"
+	/usr/bin/rpm --import "/opt/${myOpt}/extracted/RPM-GPG-KEY-scc-${sccVer}"
 fi
 
 # Install NAVWAR SCC RPM
-if [ -r "/opt/${myOpt}/extracted/scc-${sccVer}_${sccVen}_x86_64/scc-${sccVer}_rhel${elVerRel}.x86_64.rpm" ] ;
-       	/bin/rpm -Uhv "/opt/${myOpt}/extracted/scc-${sccVer}_${sccVen}_x86_64/scc-${sccVer}_rhel${elVerRel}.x86_64.rpm"
+if [ -r "/opt/${myOpt}/extracted/scc-${sccVer}_${sccVen}_x86_64/scc-${sccVer}.${sccVen}.x86_64.rpm" ] ; then
+       	/bin/rpm -Uhv "/opt/${myOpt}/extracted/scc-${sccVer}_${sccVen}_x86_64/scc-${sccVer}.${sccVen}.x86_64.rpm"
 fi
 
