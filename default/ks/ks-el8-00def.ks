@@ -37,11 +37,11 @@ mkIncFil 20sec 00def 00el0_accts
 # 30net - Network - Defaults and DHCP
 mkIncFil 30net 00def 00el0_${NET_KS}
 
-# 40dev - Device - Local Storage Device and GRUB Password
-mkIncFil 40dev 00def 00el0_${DEV_KS}
+# 40dev - Device - Local Storage Device, GRUB Password and LVM w/LUKS Default Passphrase
+mkIncFil 40dev 00def 00el0_luks 00el0_${DEV_KS}
 # custom # mkIncFil 40dev 00def 00cus_${DEV_KS}
 
-# 45sto - Storage - Local Storage Layout
+# 45sto - Storage - Local Storage Layout w/separate /home + /opt
 mkIncFil 45sto 00def 00el0_home_opt
 
 # 60env - Environment - COMPS Default Environment
