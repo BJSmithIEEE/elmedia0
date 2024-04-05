@@ -11,7 +11,7 @@ myEl="7"
 sccVen="rhel${myEl}"
 sccVen2="oracle-linux${myEl}"
 sccVen3="sles12-15"
-sccVer="5.8"
+sccVer="5.9"
 sccArcFil="scc-${sccVer}_${sccVen}_${sccVen3}_${sccVen2}_x86_64_bundle.zip"
 sccArcGpg="RPM-GPG-KEY-scc-5.zip"
 
