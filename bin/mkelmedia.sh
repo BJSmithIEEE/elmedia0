@@ -90,9 +90,9 @@ elif [ ! -f "${mySrc}/.discinfo" ] ; then
 	exit 34
 fi
 
-# mkisofs and hybridiso required for this script
+# genisoimage/mkisofs and hybridiso required for this script
 if [ "${myOut}" == "iso" ] ; then
-	[ "${bMkiso}" == "" ] && echo -e "\nERROR(96): binary 'mkisofs' required, not found in PATH\n" >> /dev/stderr && exit 96
+	[ "${bMkiso}" == "" ] && echo -e "\nERROR(96): binary 'genisoimage' or 'mkisofs' required, not found in PATH\n" >> /dev/stderr && exit 96
 	[ "${bHyiso}" == "" ] && echo -e "\nERROR(97): binary 'isohybrid' required, not found in PATH\n" >> /dev/stderr && exit 97 
 fi
 
@@ -203,8 +203,14 @@ if [ "${myOut}" == "iso" ] ; then
 	echo -e "\n${myNam}:\tGenerate ISO File"
 	cd "${myDstTmp}"
 	rmdir rr_moved 2> /dev/null
-	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points -V "${myLbl}" . 2>&1 | grep -E '9[.]9.[%]'
-	${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"
+	# Original mkisofs
+# OLD #	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -V "${myLbl}" -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points . 2>&1 | grep -E '9[.]9.[%]'
+	# Updated
+	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -volid "${myLbl}" -untranslated-filenames -J -joliet-long -rational-rock -translation-table -input-charset utf-8 -x ./lost+found -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot . 2>&1 | grep -E '9[.]9.[%]'
+	# FUTURE? # Only use isohybrid --uefi if RHEL8+, may cause issues for QEMU/KVM and some hardware with RHEL7
+	# FUTURE? # if [ ${gVer} -ge 8 ] ; then
+		${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"
+	# FUTURE? # fi
 	cd "${myCwd}"
 	echo -e "\n${myNam}:\tRemove Temporary ISO Build Subdir"
 	# WARNING:  Never use only a variable with no text with 'rm -rf'
