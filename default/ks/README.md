@@ -28,7 +28,7 @@ The 'compilation' is done in the `%pre` block of the Kickstart files themselves.
 
 ``` shell
 ###############################################################################
-### EL7 - Kickstart - Xxxxxxxx
+### EL8 - Kickstart - Xxxxxxxx
 ###############################################################################
 ### metaFilename:xxxxx
 ### metaShortname:Xxxxxxxx Xxxxxxxx
@@ -37,11 +37,10 @@ The 'compilation' is done in the `%pre` block of the Kickstart files themselves.
 ###     Base - Install
     ...
 
-
 ###	PRE
 %pre --log /tmp/ks-script_elmedia-pre.log
 echo -e "\n===============\n[elmedia]\tKickstart %pre\n===============\n"
-export DISTAG="el7"
+export DISTAG="el8"
 
 
 # XXXXX INJECT_KSPRE XXXXX
@@ -59,11 +58,11 @@ mkIncFil 20sec 00def 00el0_accts
 # 30net - Network - Defaults and DHCP
 mkIncFil 30net 00def 00el0_${NET_KS}
 
-# 40dev - Device - Local Storage Device and GRUB Password
-mkIncFil 40dev 00def 00el0_${DEV_KS}
-# custom # mkIncFil 40dev 00def 00cus_${DEV_KS}
+# 40dev - Device - Local Storage Device, GRUB Password and LVM w/LUKS Default Passphrase
+mkIncFil 40dev 00def 00el0_luks 00el0_${DEV_KS}
+# custom # mkIncFil 40dev 00def 00el0_luks 00cus_${DEV_KS}
 
-# 45sto - Storage - Local Storage Layout
+# 45sto - Storage - Local Storage Layout w/separate /home + /opt
 mkIncFil 45sto 00def 00el0_home_opt
 
 # 60env - Environment - COMPS Default Environment
@@ -75,18 +74,22 @@ mkIncFil 65pkg 00def ansible scc tpm2
 # 80add - Add-ons - Various add-ons
 mkIncFil 80add 00def
 
+# 85pol - Policy - Built-in Security Policy
+mkIncFil 85pol anaconda_passwd
+# OpenSCAP NIST CUI - Use CyberX and/or Lockdown Instead # mkIncFil 85pol anaconda_passwd openscap_cui
+# OpenSCAP DISA STIG - Use CyberX and/or Lockdown Instead # mkIncFil 85pol anaconda_passwd openscap_stig
+
 # 90pst - Post - Post-Install
 mkIncFil 90pst 00def 00el0_home 00el0_sshsudo clevis_common dracut_clevis_none
 # custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tpm2
 # custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tang
 
 # 95opt - Post - Optional Software
-mkIncFil 95opt STIG TPS
-# custom # mkIncFil 95opt STIG TPS cus
+mkIncFil 95opt cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig
+# custom w/Third Party Software # mkIncFil 95opt cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig TPS cus
 
 ## %pre - end
 %end
-
 
 ###     Base - Locale
     ...
@@ -116,7 +119,7 @@ Followed by a two (2) digit order, and a brief, three (3) letter abbreviation, w
 > ***TODO:***  *this should also be a table, for easier consumption*
 
 * `10ins` - Installation includes -- *WARNING: installation includes don't seem to work! So hardcoded into each Kickstart file, no 10inc.*
-* `15lcl` - Locale includes (e.g., dbResearch site, currently HSV-only -- *FUTURE: IP-based detection would require DHCP at install*)
+* `15lcl` - Locale includes (e.g., US Eastern or Central Timezone -- *FUTURE:* IP-based detection would require DHCP at install)
 * `20sec` - Security includes
 * `30net` - Network includes -- *IMPORTANT: the default network interface device is dynamically detected*
 * `40dev` - Device includes (e.g., basic storage) -- *IMPORTANT: the default storage device is dynamically detected*
@@ -124,6 +127,7 @@ Followed by a two (2) digit order, and a brief, three (3) letter abbreviation, w
 * `60env` - Environment includes (e.g., system role package)
 * `65pkg` - Package includes
 * `80add` - Additional includes
+* `85pol` - Policy includes (passwords, built-in OpenSCAP, etc...)
 * `90pst` - `%post` install core configuration includes and setup
 * `95opt` - `%post` install optional Software Distribution includes and setup
 
