@@ -107,6 +107,7 @@ for c in "${myCsd}" "${myDir}" ; do
 				# Prefix opt_ into name (optional package)
 		                /usr/bin/tar cvf "${myOut}/opt_${myTar}.${myRel}-${myDt}.tar" "./${d}"
 			fi
+        		echo -e "\n"
 		fi
 		cd "${myCwd}"
 	done
