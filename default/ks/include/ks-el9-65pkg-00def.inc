@@ -31,7 +31,8 @@ scap-security-guide
 subscription-manager
 tmux
 usbguard
-# abrt not included in EL9 base media
+# Legacy package (abrt) replaced by another solution (systemd-coredump) in EL9, which is not in EL9 base media
+#-systemd-coredump
 -iprutils
 -sendmail
 
@@ -39,7 +40,8 @@ usbguard
 opensc
 openssl-pkcs11
 rng-tools
-# rsh-server not included in EL9 base media
+# Legacy package (rsh-server) not in EL9 base media
+#-rsh-server
 -telnet-server
 -tftp-server
 -tuned
@@ -50,7 +52,7 @@ audispd-plugins
 chrony
 crypto-policies
 dnf-automatic
-dnf-plugin-subscription-manager
+# Separate package (dnf-plugin-subscription-manager) is not EL9 (or base media)
 openssh-clients
 policycoreutils-python-utils
 subscription-manager
@@ -81,11 +83,12 @@ sssd-proxy
 # Boom Snaphots
 boom-boot
 boom-boot-conf
-boom-boot-grub2
+# separate package (boom-boot-grub2) not in EL9 base media (still needed?)
 python3-boom
 
 # Other - Based on old EL8
-# mailx not included in EL9 base media
+# Legacy package (mailx) replaced by another solution (s-mail) in EL9
+s-nail
 postfix
 sysstat
 
