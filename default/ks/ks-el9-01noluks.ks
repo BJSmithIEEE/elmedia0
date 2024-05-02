@@ -38,7 +38,7 @@ mkIncFil 30net 00def 00el0_${NET_KS}
 
 # 40dev - Device - Local Storage Device, GRUB Password w/o LUKS
 mkIncFil 40dev 00def 00el0_noluks 00el0_${DEV_KS}
-# custom # mkIncFil 40dev 00def 00cus_${DEV_KS}
+# custom # mkIncFil 40dev 00def 00el0_noluks 00cus_${DEV_KS}
 
 # 45sto - Storage - Local Storage Layout w/separate /home + /opt
 mkIncFil 45sto 00def 00el0_home_opt
