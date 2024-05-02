@@ -63,9 +63,8 @@ mkIncFil 90pst 00def 00el0_home 00el0_sshsudo clevis_common dracut_clevis_none
 # custom # mkIncFil 90pst 00def 00el0_home 00cus_sshsudo clevis_common dracut_clevis_tang
 
 # 95opt - Post - Optional Software
-# mkIncFil 95opt cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig
-mkIncFil 95opt cyberx_bench cyberx_scc cyberx_view		# no STIG/Lockdown (yet)
-# custom w/Third Party Software # mkIncFil 95opt cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig TPS cus
+mkIncFil 95opt ansible_collections cyberx_bench cyberx_scc cyberx_stig cyberx_view
+# custom w/Third Party Software # mkIncFil 95opt ansible_collections cyberx_bench cyberx_scc cyberx_stig cyberx_view TPS cus
 
 # %pre - end
 %end

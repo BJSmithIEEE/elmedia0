@@ -13,7 +13,7 @@ umask 002
 ###	Varibles - May be overwritten by ./bin/custom.vars file
 gSvrUri='http://softdist.mydomain.com'          # Software distribution tarballs - HTTP[S] server hostname (with leading http[s]://)
 gSvrTar='pub/elmedia/tar'                       # Software distribution tarballs - HTTP[S] server path
-myOpt="cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig"   # Tarballs of Optional Files to Include (user provided)
+myOpt="ansible_collections cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig"   # Tarballs of Optional Files to Include (user provided)
 myPkg="addlpkgs ansible"                        # Tarballs of Packages to Include (distribution or third party software provided)
 let gAnsVer=29                                  # Ansible Version pre-Stream/RHEL 9 (Stream/RHEL 7/8)
 
