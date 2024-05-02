@@ -38,22 +38,19 @@ elif [ -r "/opt/${myOpt}/extracted/rhel${elVerRel}STIG-ansible.zip" ] ; then
         cd ~
         /bin/chown -R ${ADM_USR} /opt/ansible.ks
         # Execute DISA STIG Ansible Playbooks
-        if [ -r "/opt/ansible.ks/${myOpt}/site.yaml" ] ; then
+	yamlExt=""
+        [ -r "/opt/ansible.ks/${myOpt}/site.yaml" ] && yamlExt="yaml"
+        [ -r "/opt/ansible.ks/${myOpt}/site.yml" ] && yamlExt="yml"
+	if [ "${yamlExt}" != "" ] ; then
                 cd "/opt/ansible.ks/${myOpt}"
                 # Force DISA STIG playbook to ignore errors
-                sed -i 's,^\([ \t]\+\)\(gather_facts.*\)$,\1\2\n\1ignore_errors: yes,g' /opt/ansible.ks/${myOpt}/site.yaml
+                sed -i 's,^\([ \t]\+\)\(gather_facts.*\)$,\1\2\n\1ignore_errors: yes,g' /opt/ansible.ks/${myOpt}/site.${yamlExt}
 		# Replace any 'systemd_service:' module with 'systemd:'
-                sed -i 's,systemd_service:,systemd:,g' /opt/ansible.ks/${myOpt}/roles/rhel9STIG/tasks/main.yaml
+                sed -i 's,systemd_service:,systemd:,g' /opt/ansible.ks/${myOpt}/roles/rhel9STIG/tasks/main.${yamlExt}
+		# Disable USBGuard at the end to prevent the very real, bare metal scenario where no one can login given the automated install
+		echo -e "\n- name:  SANErule_258036_usbguard_NEWSYSTEM\n  service:\n    name: usbguard.service\n    enabled: no\n" >> /opt/ansible.ks/${myOpt}/roles/rhel9STIG/tasks/main.${yamlExt}
 		# Force en_US.UTF-8
-                LANG=en_US.UTF-8 LD_LIBRARY_PATH=/usr/lib64 /usr/bin/ansible-playbook site.yaml
-        elif [ -r "/opt/ansible.ks/${myOpt}/site.yml" ] ; then
-                cd "/opt/ansible.ks/${myOpt}"
-                # Force DISA STIG playbook to ignore errors
-                sed -i 's,^\([ \t]\+\)\(gather_facts.*\)$,\1\2\n\1ignore_errors: yes,g' /opt/ansible.ks/${myOpt}/site.yml
-		# Replace any 'systemd_service:' module with 'systemd:'
-                sed -i 's,systemd_service:,systemd:,g' /opt/ansible.ks/${myOpt}/roles/rhel9STIG/tasks/main.yml
-		# Force en_US.UTF-8
-		LANG=en_US.UTF-8 LD_LIBRARY_PATH=/usr/lib64 /usr/bin/ansible-playbook site.yml
-        fi
+                LANG=en_US.UTF-8 LD_LIBRARY_PATH=/usr/lib64 /usr/bin/ansible-playbook site.${yamlExt}
+	fi
 fi
 
