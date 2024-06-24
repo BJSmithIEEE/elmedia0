@@ -134,29 +134,35 @@ fi
 if [ "${myOut}" == "usb" ] && [ "${gOver}" == 0 ] ; then
 	# USB No Overwrite
 	echo -e "\n${myNam}:\tCheck Destination USB against Source ISO Distro (No Overwrite)"
+	echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
+	cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0  0
+elif [ "${myOut}" == "iso" ] ; then
+	# ISO Copy w/Symlink for Big Package Directories
+	echo -e "\n${myNam}:\tCopy Source distro files to ISO Prep Area w/Package symlinks (Create/Link)"
+	cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0  1
 else
-	# ISO Copy / USB Overwrite
-	echo -e "\n${myNam}:\tCopy Source ISO distro files to Destination (Create/Overwrite)"
+	# USB Overwrite
+	echo -e "\n${myNam}:\tCopy Source distro files to USB Destination (Create/Overwrite)"
+	echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
+	cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0  0
 fi
 echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
-# Actually do copy (Time Consuming)
-cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0
 
 # NOTE:  Always do these steps after the distribution - in case the directories already exist
 
 # Packages not provided in distribution media but required in %packages
 for p in ${myPkg} ; do
-	echo -e "\n${myNam}:\tGet Packages (${p}) Repo (if no local copy)"
-	if [ "${p}" == "ansible" ] ; then
+	echo -e "\n${myNam}:\tGet Packages (${p}) Repo (if no local 'staging' copy)"
+	if [ "${p}" == "ansible" ] && [ gAnsCore -eq 0 ] ; then
 		if [ ${gVer} -le 8 ] ; then
 			getFilTar "${myDir}" "staging" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}${gAnsVer}.${gRelVer}/repodata" "softdist"
 			echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
-			cpTree "${myDir}/staging/${p}.${gVer}/${p}${gAnsVer}.${gRelVer}" "${myDstTmp}/${p}${gAnsVer}"  1  1
+			cpTree "${myDir}/staging/${p}.${gVer}/${p}${gAnsVer}.${gRelVer}" "${myDstTmp}/${p}${gAnsVer}"  1  1  0
 		fi
 	else
 		getFilTar "${myDir}" "staging" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}.${gRelVer}/repodata" "softdist"
 		echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
-		cpTree "${myDir}/staging/${p}.${gVer}/${p}.${gRelVer}" "${myDstTmp}/${p}"  1  1
+		cpTree "${myDir}/staging/${p}.${gVer}/${p}.${gRelVer}" "${myDstTmp}/${p}"  1  1  0
 	fi
 done
 
@@ -166,13 +172,13 @@ for f in ${myOpt} ; do
 	getFilTar "${myDir}" "staging" "opt_${f}.${gVer}-validated.tar" "opt.${gVer}/${f}" "softdist"
 done
 echo -e "\n${myNam}:\tCopy All Optional Files for Distribution"
-cpTree "${myDir}/staging/opt.${gVer}" "${myDstTmp}/opt"  1  1
+cpTree "${myDir}/staging/opt.${gVer}" "${myDstTmp}/opt"  1  1  0
 
 # Kickstart files
 echo -e "\n${myNam}:\tCopy Kickstart Files"
-cpTree "${myDir}/default/ks" "${myDstTmp}/ks"  1  1
+cpTree "${myDir}/default/ks" "${myDstTmp}/ks"  1  1  0
 # Look for custom Kickstart files in optional, end-user created, elmedia0.custom project ./custom subdirectory as overrides
-[ -r "${myCcd}/ks" ] && cpTree "${myCcd}/ks" "${myDstTmp}/ks"  1  0
+[ -r "${myCcd}/ks" ] && cpTree "${myCcd}/ks" "${myDstTmp}/ks"  1  0  0
 echo -e "\n${myNam}:\tInject Kickstart Files w/Globals-Functions"
 for f in ${myDstTmp}/ks/ks-el*.ks ; do
         # This (cd) is a temporary fix - needs to be re-written
@@ -191,9 +197,9 @@ getMnuGet "${myDstTmp}"
 # TODO # genMnuKse "${myDstTmp}"
 # Static Menu - Interim/Temporary (hardcoded)
 echo -e "\n${myNam}:\tCopy Boot Files (hardcoded)"
-cpTree "${myDir}/default/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0
+cpTree "${myDir}/default/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0  0
 # Look for custom Static Menu files in optional, end-user created, elmedia0.custom project ./custom subdirectory as overrides
-[ -r "${myCcd}/hardcode" ] && cpTree "${myCcd}/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0
+[ -r "${myCcd}/hardcode" ] && cpTree "${myCcd}/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0  0
 # Menu - Set/Replace any ISO default label with actual ISO label
 echo -e "\n${myNam}:\tUpdate Boot Files for Media Label (${myLbl})"
 setMnuLbl "${myDstTmp}" "${myLbl}" "${myLblDef}"
@@ -206,7 +212,7 @@ if [ "${myOut}" == "iso" ] ; then
 	# Original mkisofs
 # OLD #	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -V "${myLbl}" -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points . 2>&1 | grep -E '9[.]9.[%]'
 	# Updated
-	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -volid "${myLbl}" -untranslated-filenames -J -joliet-long -rational-rock -translation-table -input-charset utf-8 -x ./lost+found -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot . 2>&1 | grep -E '9[.]9.[%]'
+	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -volid "${myLbl}" -untranslated-filenames -l -follow-links -J -joliet-long -rational-rock -translation-table -input-charset utf-8 -x ./lost+found -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot . 2>&1 | grep -E '9[.]9.[%]'
 	# FUTURE? # Only use isohybrid --uefi if RHEL8+, may cause issues for QEMU/KVM and some hardware with RHEL7
 	# FUTURE? # if [ ${gVer} -ge 8 ] ; then
 		${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"

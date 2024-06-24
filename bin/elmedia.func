@@ -15,7 +15,8 @@ gSvrUri='http://softdist.mydomain.com'          # Software distribution tarballs
 gSvrTar='pub/elmedia/tar'                       # Software distribution tarballs - HTTP[S] server path
 myOpt="ansible_collections cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig"   # Tarballs of Optional Files to Include (user provided)
 myPkg="addlpkgs ansible"                        # Tarballs of Packages to Include (distribution or third party software provided)
-let gAnsVer=29                                  # Ansible Version pre-Stream/RHEL 9 (Stream/RHEL 7/8)
+let gAnsVer=29                                  # Manually packaged Ansible version -- e.g., "29" = "2.9" for pre-Stream/RHEL 9 (Stream/RHEL 7/8)
+let gAnsCore=0					# If non-0, uses any included Ansible Core on media instead of manually packaged Ansible (EPEL/Upstream), including for Stream/RHEL 8
 
 ###	Global Defaults
 gDt="$(date +%s_%Y%b%d)"		# Unified Version Seconds-since-Epoch + Human-readable-Date
@@ -130,11 +131,14 @@ getRelVer() {
 #	$2	Destination (must be a directory)
 #	$3	[opt] 1 = overwrite (if rsync unavailable)
 #	$4	[opt] 1 = backup/move existing (if ${2} is a directory, but not a mount)
+#	$5	[opt] 1 = source is installer media, symlink any directories named 'AppStream', 'BaseOS' or 'Packages,' instead of copying -- only works for ISO output, not USB (or Network)
 cpTree() {
+	local c="$(pwd)"
 	local s="${1}"
 	local d="${2}"
 	local f=0 ; [ "${3}" == "1" ] && let f=1
 	local b=0 ; [ "${3}" == "1" ] && [ "${4}" == "1" ] && let b=1
+	local l="${5}"
 	local n=""
 	local p=""
 	local pb=""
@@ -170,14 +174,20 @@ cpTree() {
 			fi
 			# Use find to generate a list of null character terminated paths from source path, just immediate directory
 			find "${s}" -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' p ; do
-				if [ "${bRsync}" != "" ] ; then 
-					local pb="$(/usr/bin/basename ${p})"
-					local pr="$(/usr/bin/readlink -f ${p})"
+				pb="$(/usr/bin/basename ${p})"
+				pr="$(/usr/bin/readlink -f ${p})"
+				# If making an ISO, if the directory is one of the package directories, symlink to absolute directory, instead of rsync/cp for massive time savings
+				if [ "${l}" == "1" ] && [ "${myOut}" == "iso" ] && [ "${pb}" == "AppStream" -o "${pb}" == "BaseOS" -o "${pb}" == "Packages" ] ; then
+					echo -e "\t     dst:  \t${d}/${pb}  \t<==(symlink)==  \t${pr}" >> /dev/stderr
+					cd "${d}"
+					ln -s "${pr}" "${pb}"
+					cd "${c}"
+				# Otherwise, use rsync if available, with full checksum checking, cp if not
+				elif [ "${bRsync}" != "" ] ; then 
 					# Use rsync w/checksum to see if replacement is needed
 					# NOTE: For rsync, use readlink -f to get actual source directory, or it won't work
 					echo -e "\t     dst:  \t${d}/${pb}  \t<==(rsync/diff)==  \t${pr}" >> /dev/stderr
 					if [ -d "${pr}" ] ; then
-						# Source is a directory (add trailing slash)
 						${bRsync} -ac "${pr}/" "${d}/${pb}" 2>> /dev/null
 					else
 						# Source is not directory 
@@ -203,6 +213,7 @@ cpTree() {
 			[ "${bOs}" == "linux" ] && chmod -R u+w "${d}/"
 		fi
 	fi
+	cd "${c}"
 }
 
 # getFilTar - Get support tarball file and extract
