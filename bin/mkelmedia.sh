@@ -153,7 +153,7 @@ echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
 # Packages not provided in distribution media but required in %packages
 for p in ${myPkg} ; do
 	echo -e "\n${myNam}:\tGet Packages (${p}) Repo (if no local 'staging' copy)"
-	if [ "${p}" == "ansible" ] && [ gAnsCore -eq 0 ] ; then
+	if [ "${p}" == "ansible" ] ; then
 		if [ ${gVer} -le 8 ] ; then
 			getFilTar "${myDir}" "staging" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}${gAnsVer}.${gRelVer}/repodata" "softdist"
 			echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
@@ -212,7 +212,7 @@ if [ "${myOut}" == "iso" ] ; then
 	# Original mkisofs
 # OLD #	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -V "${myLbl}" -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points . 2>&1 | grep -E '9[.]9.[%]'
 	# Updated
-	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -volid "${myLbl}" -untranslated-filenames -l -follow-links -J -joliet-long -rational-rock -translation-table -input-charset utf-8 -x ./lost+found -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot . 2>&1 | grep -E '9[.]9.[%]'
+	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -volid "${myLbl}" -untranslated-filenames -follow-links -J -joliet-long -rational-rock -translation-table -input-charset utf-8 -x ./lost+found -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot . 2>&1 | grep -E '9[.]9.[%]'
 	# FUTURE? # Only use isohybrid --uefi if RHEL8+, may cause issues for QEMU/KVM and some hardware with RHEL7
 	# FUTURE? # if [ ${gVer} -ge 8 ] ; then
 		${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"

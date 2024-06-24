@@ -16,7 +16,6 @@ gSvrTar='pub/elmedia/tar'                       # Software distribution tarballs
 myOpt="ansible_collections cyberx_bench cyberx_scc cyberx_stig cyberx_view lockdown_stig"   # Tarballs of Optional Files to Include (user provided)
 myPkg="addlpkgs ansible"                        # Tarballs of Packages to Include (distribution or third party software provided)
 let gAnsVer=29                                  # Manually packaged Ansible version -- e.g., "29" = "2.9" for pre-Stream/RHEL 9 (Stream/RHEL 7/8)
-let gAnsCore=0					# If non-0, uses any included Ansible Core on media instead of manually packaged Ansible (EPEL/Upstream), including for Stream/RHEL 8
 
 ###	Global Defaults
 gDt="$(date +%s_%Y%b%d)"		# Unified Version Seconds-since-Epoch + Human-readable-Date
