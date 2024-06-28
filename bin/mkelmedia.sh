@@ -131,24 +131,24 @@ else
 fi
 
 # Copy distribution - This is the most time consuming, unless the distribution is already on the media (in the case of USB)
-if [ "${myOut}" == "usb" ] && [ "${gOver}" == 0 ] ; then
-	# USB No Overwrite
-	echo -e "\n${myNam}:\tCheck Destination USB against Source ISO Distro (No Overwrite)"
+if [ "${myOut}" == "iso" ] ; then
+	# ISO Copy w/Symlink for ISO Repository Directories
+	echo -e "\n${myNam}:\tCopy Source distro files to ISO Prep Area w/Repository symlinks (Create/Link)"
+	echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
+	cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0  1
+elif [ "${myOut}" == "usb" ] && [ "${gOver}" == "0" ] ; then
+	# USB **NO** Overwrite
+	echo -e "\n${myNam}:\tCheck Destination USB against Source ISO Distro (NO Overwrite)"
 	echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
 	cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0  0
-elif [ "${myOut}" == "iso" ] ; then
-	# ISO Copy w/Symlink for Big Package Directories
-	echo -e "\n${myNam}:\tCopy Source distro files to ISO Prep Area w/Package symlinks (Create/Link)"
-	cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0  1
 else
 	# USB Overwrite
-	echo -e "\n${myNam}:\tCopy Source distro files to USB Destination (Create/Overwrite)"
+	echo -e "\n${myNam}:\tCopy Source ISO distro files to USB Destination (Create/Overwrite)"
 	echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
 	cpTree  "${mySrc}"  "${myDstTmp}"  ${gOver}  0  0
 fi
-echo -e "\n${myNam}:\t\tWARNING:  Time Consuming  (no progress bar)"
 
-# NOTE:  Always do these steps after the distribution - in case the directories already exist
+# **IMPORTANT:**  Always do these steps **after** the distribution - in case the directories already exist and/or need to be overwritten
 
 # Packages not provided in distribution media but required in %packages
 for p in ${myPkg} ; do
