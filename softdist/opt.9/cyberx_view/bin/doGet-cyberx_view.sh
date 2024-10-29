@@ -8,11 +8,11 @@
 myEl="9"
 
 # DoD CyberX - STIG Viewer v2 (defaults to public URL)
-svVer[2]="2-17"
+svVer[2]="2-18"
 svArcFil[2]="U_STIGViewer_${svVer[2]}_Linux.zip"
 
 # DoD CyberX - STIG Viewer v3 (defaults to public URL)
-svVer[3]="3-3-0"
+svVer[3]="3-4-0"
 svArcFil[3]="U_STIGViewer-linux_x64-${svVer[3]}.zip"
 
 # Other Parameters and Globals

@@ -9,7 +9,7 @@ myEl="9"
 bchScp="1-3"
 
 # DoD CyberX - DISA STIG Benchmark (defaults to Public URL)
-bchVer="V1R1"
+bchVer="V2R2"
 bchArcFil="U_RHEL_${myEl}_${bchVer}_STIG_SCAP_${bchScp}_Benchmark.zip"
 
 # Other Parameters and Globals
