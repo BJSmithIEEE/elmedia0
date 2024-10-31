@@ -204,22 +204,23 @@ cpTree "${myDir}/default/hardcode/menu.${gRelVer}"  "${myDstTmp}"  1  0  0
 echo -e "\n${myNam}:\tUpdate Boot Files for Media Label (${myLbl})"
 setMnuLbl "${myDstTmp}" "${myLbl}" "${myLblDef}"
 
-# Build ISO file (not required for USB) - See Red Hat Solution 60959 - https://access.redhat.com/solutions/60959
+# Build ISO file (not required for USB, which can boot FAT32 directly) - See Red Hat Solution 60959 - https://access.redhat.com/solutions/60959
 if [ "${myOut}" == "iso" ] ; then
 	echo -e "\n${myNam}:\tGenerate ISO File"
 	cd "${myDstTmp}"
 	rmdir rr_moved 2> /dev/null
-	# Original mkisofs
-# OLD #	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -V "${myLbl}" -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points . 2>&1 | grep -E '9[.]9.[%]'
-	# Updated
-	${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -volid "${myLbl}" -untranslated-filenames -follow-links -J -joliet-long -rational-rock -translation-table -input-charset utf-8 -x ./lost+found -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot . 2>&1 | grep -E '9[.]9.[%]'
-	# FUTURE? # Only use isohybrid --uefi if RHEL8+, may cause issues for QEMU/KVM and some hardware with RHEL7
-	# FUTURE? # if [ ${gVer} -ge 8 ] ; then
-		${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"
-	# FUTURE? # fi
+	if [ ${gVer} -le 7 ] ; then
+		# Old mkisofs compatible genisoimage command-parameters (more EL7 and earlier compatible)
+		${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -V "${myLbl}" -follow-links -b isolinux/isolinux.bin -J -joliet-long -uid 0 -gid 0 -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points . 2>&1 | grep -E '9[.]9.[%]'
+	else
+		# Newer genisoimage command-parameters (more EL8+ compatible)
+		${bMkiso} -o "${myDst}/${myLbl}_${gDt}.iso" -volid "${myLbl}" -untranslated-filenames -follow-links -J -joliet-long -rational-rock -translation-table -input-charset utf-8 -x ./lost+found -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot . 2>&1 | grep -E '9[.]9.[%]'
+	fi
+	# Run isohybrid against new ISO
+	${bHyiso} --uefi "${myDst}/${myLbl}_${gDt}.iso"
 	cd "${myCwd}"
 	echo -e "\n${myNam}:\tRemove Temporary ISO Build Subdir"
-	# WARNING:  Never use only a variable with no text with 'rm -rf'
+	# WARNING:  Never use only a variable with no hardcoded text in the path with 'rm -rf', always use some hardcoded text in the path for safety purposes
 	/bin/rm -rf "${myDst}/elmedia-isobuild_${gDt}"
 fi
 
