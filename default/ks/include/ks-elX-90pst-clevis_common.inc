@@ -10,7 +10,8 @@
 # Example entry - non-root VG, via TPM2 chip (or manual passphrase entry)
 echo -e "\n# TPM2 - non-root VG #    DMname4TPM2orManual    UUID=01234567-89ab-cdef-0123-456789abcdef    none" >> /etc/crypttab 
 # Example entry - non-root VG, via Tang server (after network is up)
-echo -e "\n# Tang - non-root VG #    DMname4Tang            UUID=01234567-89ab-cdef-0123-456789abcdef    none    _netdev" >> /etc/crypttab 
+echo -e "\n# Tang RHEL8 (no _netdev)  - non-root VG #    DMname4Tang            UUID=01234567-89ab-cdef-0123-456789abcdef    none" >> /etc/crypttab 
+echo -e "\n# Tang RHEL7 (use _netdev) - non-root VG #    DMname4Tang            UUID=01234567-89ab-cdef-0123-456789abcdef    none    _netdev" >> /etc/crypttab 
 
 
 ## DRACUT (config) - /etc/dracut.conf.d/99-kcs4500491.conf
@@ -24,8 +25,8 @@ EOF
 # Example config for static IPv4, if static IPv4 (not DHCP) will be used
 cat << 'EOF' > '/etc/dracut.conf.d/static_ip.conf'
 ### uncomment/modify for static IPv4:  
-# RHEL7 # kernel_cmdline="ip=192.168.0.100 netmask=255.255.255.0 nameserver=192.168.0.20 nameserver=192.168.0.10"
 # RHEL8 # kernel_cmdline="ip=192.168.0.100:::255.255.255.0::eno1:none nameserver=192.168.0.20"
+# RHEL7 # kernel_cmdline="ip=192.168.0.100 netmask=255.255.255.0 nameserver=192.168.0.20 nameserver=192.168.0.10"
 EOF
 
 
@@ -69,8 +70,12 @@ else
 
 	# Inform sysadmin to rebuild all initramfs files (after any further modifications) and rebuild the GRUB configuration
 	echo -e "\n*****\tAfter all modifications (e.g., Static IP for Dracut), please run the following commands BEFORE rebooting ..."
-	echo -e "\t# dracut -fv \n"
-	echo -e "\t# grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg"
+	echo -e "\t# dracut -fv"
+	if [ -d "/sys/firmware/efi" ] ; then
+		echo -e "\t# grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg"
+	else
+		echo -e "\t# grub2-mkconfig -o /boot/grub2/grub.cfg"
+	fi
 fi
 EOF
 
