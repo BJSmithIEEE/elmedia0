@@ -38,8 +38,9 @@ cat << 'EOF' > '/root/clevis_tang-luks_bind.sh'
 #       /root/clevis_tang-luks_bind.sh
 #       Example script to use clevis luks bind to tang server
 #
-fictTang="http://tang.mydomain.com:7500"	# do NOT modify this line
-myTang="${fictTang}"     			# my tang server (modify this line)
+fictTang="http://NoTangServer:7500"		# do NOT modify this line
+myTang="${fictTang}"     			# do NOT modify this line
+#myTang="http://190.x.y.z:7500"			# my tang server (uncomment and MODIFY this line)
 
 if [ "${myTang}" == "" ] || [ "${myTang}" == "${fictTang}" ] ; then
 	echo -e "\n*****\tModify this script to use your Tang server http://address[:port] (myTang=)\n"
@@ -76,6 +77,7 @@ else
 	else
 		echo -e "\t# grub2-mkconfig -o /boot/grub2/grub.cfg"
 	fi
+	echo -e "\nIMPORTANT:\t*ALL* LUKS volumes *MUST* be opened (e.g., listed in 'lsblk') for mounts in /etc/fstab\n\t\twhen executing 'dracut -fv' to update the initramfs for the current kernel"
 fi
 EOF
 
