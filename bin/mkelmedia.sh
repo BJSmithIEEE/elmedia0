@@ -155,12 +155,12 @@ for p in ${myPkg} ; do
 	echo -e "\n${myNam}:\tGet Packages (${p}) Repo (if no local 'staging' copy)"
 	if [ "${p}" == "ansible" ] ; then
 		if [ ${gVer} -le 8 ] ; then
-			getFilTar "${myDir}" "staging" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}${gAnsVer}.${gRelVer}/repodata" "softdist"
+			getFilTar "${myDir}" "staging" "${p}.${gVer}" "${p}.${gVer}/${p}${gAnsVer}.${gRelVer}/repodata" "softdist"
 			echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
 			cpTree "${myDir}/staging/${p}.${gVer}/${p}${gAnsVer}.${gRelVer}" "${myDstTmp}/${p}${gAnsVer}"  1  1  0
 		fi
 	else
-		getFilTar "${myDir}" "staging" "${p}.${gVer}-validated.tar" "${p}.${gVer}/${p}.${gRelVer}/repodata" "softdist"
+		getFilTar "${myDir}" "staging" "${p}.${gVer}" "${p}.${gVer}/${p}.${gRelVer}/repodata" "softdist"
 		echo -e "\n${myNam}:\tCopy Packages (${p}) Repo for Distribution"
 		cpTree "${myDir}/staging/${p}.${gVer}/${p}.${gRelVer}" "${myDstTmp}/${p}"  1  1  0
 	fi
@@ -168,8 +168,8 @@ done
 
 # Optional files to add for %post
 for f in ${myOpt} ; do
-	echo -e "\n${myNam}:\tGet Optional (${f} Files (if no local copy)"
-	getFilTar "${myDir}" "staging" "opt_${f}.${gVer}-validated.tar" "opt.${gVer}/${f}" "softdist"
+	echo -e "\n${myNam}:\tGet Optional (${f}) Files (if no local copy)"
+	getFilTar "${myDir}" "staging" "opt_${f}.${gVer}" "opt.${gVer}/${f}" "softdist"
 done
 echo -e "\n${myNam}:\tCopy All Optional Files for Distribution"
 cpTree "${myDir}/staging/opt.${gVer}" "${myDstTmp}/opt"  1  1  0

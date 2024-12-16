@@ -218,7 +218,7 @@ cpTree() {
 # getFilTar - Get support tarball file and extract
 # 	$1	Base Directory for operations (must be a directory)
 # 	$2	Destination Subdirectory to extract into (must be a directory)
-# 	$3	Tarball to pull (must be a tarball)
+# 	$3	Prefix of tarball, without trailing '-validated.tar', '-candidate.tar' or 'epoch-YYYYbbbdd.tar' to pull (must be a tarball)
 # 	$4	Source Relative Path (file/subdirectory), if doesn't exist, get and extract tarball, otherwise skip
 # 	$5	[Optional] Source Subdirectory for local copy
 getFilTar() {
@@ -227,46 +227,58 @@ getFilTar() {
 	local t="${3}"
 	local p="${4}"
 	local s="${5}"
+	local f0=""
+	local f1=""
+	local y1=""
 	# Destination must be a directory
 	if [ -d "${b}/${d}" ] ; then
-		if [ ! -e "${b}/${d}/${p}" ] ; then
-			# Tarball does not exist, attempt to pull from server
-			echo -e "\tpath(${b}/${d}/${p}) does not exist, get tarball(${t})" >> /dev/stderr
-			echo -e "\t  get(${gSvrUri}/${gSvrTar}/${t})" >> /dev/stderr
-			if [ "${bCurl}" != "" ] ; then
-				# Curl exists, attempt to pull from server
-				${bCurl} -fks "${gSvrUri}/${gSvrTar}/${t}" -o "${b}/${d}/${t}"
-				if [ -r "${b}/${d}/${t}" ] ; then
-					echo -e "\t    download successful" >> /dev/stderr
-				else
-					# Pull did not work, use older, static copy in ${s}
-					echo -e "\t    download NOT successful" >> /dev/stderr
-					if [ -d "${b}/${s}" ] && [ -r "${b}/${s}/${t}" ] ; then
-						echo -e "\t    using local tarball copy" >> /dev/stderr
-						cp -p "${b}/${s}/${t}" "${b}/${d}/${t}"
+		if [ -e "${b}/${d}/${p}" ] ; then
+			echo -e "\tpath(${b}/${d}/${p}) already exists, skipping tarball(${t}-*.tar)" >> /dev/stderr
+		else
+			# Tarball does not exist, attempt to pull '-validated.tar' or '-candidate.tar' from server
+			for y1 in 'validated' 'candidate' ; do
+				echo -e "\tpath(${b}/${d}/${p}) does not exist, attempt get of tarball(${t}-${y1}.tar)" >> /dev/stderr
+				echo -e "\t  get(${gSvrUri}/${gSvrTar}/${t}-${y1}.tar)" >> /dev/stderr
+				if [ "${bCurl}" != "" ] ; then
+					# Curl exists, attempt to pull '-validated.tar' or '-canddiate.tar' from server
+					${bCurl} -fks "${gSvrUri}/${gSvrTar}/${t}-${y1}.tar" -o "${b}/${d}/${t}-${y1}.tar"
+					if [ -r "${b}/${d}/${t}-${y1}.tar" ] ; then
+						echo -e "\t    download successful" >> /dev/stderr
+						f0="${b}/${d}/${t}-${y1}.tar"
+						break
 					fi
+				else
+					echo -e "\t    WARNING:  'curl' not installed, skipping" >> /dev/stderr
 				fi
-				if [ -r "${b}/${d}/${t}" ] ; then
-					echo -e "\t  extract(${b}/${d}/${t})" >> /dev/stderr
-					if [ "${bTar}" != "" ] ; then
-						${bTar} xC ${b}/${d}/ -f ${b}/${d}/${t}
-						echo -e "\t  path(${b}/${d}/${p})" >> /dev/stderr
-						if [ -e "${b}/${d}/${p}" ] ; then
-							echo -e "\t    validated" >> /dev/stderr
-						else
-							echo -e "\t    WARNING:  does NOT exist, media may be INCOMPLETE" >> /dev/stderr
-						fi
+			done
+			if [ "${f0}" == "" ] ; then
+				# Pull did not work, attempt of find a static copy in ${s}
+				echo -e "\t    download NOT successful" >> /dev/stderr
+				for f1 in $(/bin/ls -1r ${b}/${s}/${t}-*.tar 2>> /dev/null) ; do
+					if [ -d "${b}/${s}" ] && [ -r "${f1}" ] ; then
+						echo -e "\t    using local designated or latest tarball copy (${f1})" >> /dev/stderr
+						cp -p "${f1}" "${b}/${d}/"
+						f0="${f1}"
+						break
+					fi
+				done
+			fi
+			if [ "${f0}" != "" ] && [ -r "${f0}" ] ; then
+				echo -e "\t  extract(${f0})" >> /dev/stderr
+				if [ "${bTar}" != "" ] ; then
+					${bTar} xC ${b}/${d}/ -f ${f0}
+					echo -e "\t  path(${b}/${d}/${p})" >> /dev/stderr
+					if [ -e "${b}/${d}/${p}" ] ; then
+						echo -e "\t    validated" >> /dev/stderr
 					else
-						echo -e "\t    WARNING:  'tar' not installed, please manually extract and re-execute" >> /dev/stderr
+						echo -e "\t    WARNING:  does NOT exist, media may be INCOMPLETE" >> /dev/stderr
 					fi
 				else
-					echo -e "\t    WARNING:  unable to locate tarball(${t})" >> /dev/stderr
+					echo -e "\t    WARNING:  'tar' not installed, please manually extract and re-execute" >> /dev/stderr
 				fi
 			else
-				echo -e "\t    WARNING:  'curl' not installed, skipping" >> /dev/stderr
+				echo -e "\t    WARNING:  unable to locate tarball for post-build support(${t})" >> /dev/stderr
 			fi
-		else
-			echo -e "\tpath(${b}/${d}/${p}) already exists, skipping tarball(${t})" >> /dev/stderr
 		fi
 	fi
 }
