@@ -8,7 +8,7 @@ elVerRel="8"
 myOpt="cyberx_scc"	# Tooling
 ADM_USR="1000:1000"	# Administrative User/Group
 sccVen="rhel${elVerRel}"
-sccVer="5.10"
+sccVer="5.10.1"
 
 ### Ensure ownership
 [ "${myOpt}" != "" ] && [ -d "/opt/${myOpt}" ] && [ "${ADM_USR}" != "" ] && /bin/chown -R ${ADM_USR} "/opt/${myOpt}"

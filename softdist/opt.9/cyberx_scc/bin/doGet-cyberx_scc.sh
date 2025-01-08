@@ -9,11 +9,12 @@ myEl="9"
 
 # DoD CyberX - NAVWAR Security Content Checker (SCC) (defaults to public URL)
 sccVen="rhel${myEl}"
-# OLD # sccVen2="oracle-linux${myEl}"
-sccVer="5.10"
-# OLD # sccArcFil="scc-${sccVer}_${sccVen}_${sccVen2}_x86_64_bundle.zip"
-sccArcFil="scc-${sccVer}_${sccVen}_x86_64_bundle.zip"
-sccArcGpg="RPM-GPG-KEY-scc-5.zip"
+sccVen2="oracle-linux${myEl}"
+sccVer="5.10.1"
+# NO # sccArcFil="scc-${sccVer}_${sccVen}_x86_64_bundle.zip"
+sccArcFil="scc-${sccVer}_${sccVen}_${sccVen2}_x86_64_bundle.zip"
+# NO # sccArcGpg="RPM-GPG-KEY-scc-5.zip"
+sccArcGpg="RPM-GPG-KEY-scc-${sccVer}.zip"
 
 # Other Parameters and Globals
 myCwd="$(pwd)"
