@@ -10,6 +10,7 @@ myOpt="ansible_collections"
 
 # Ansible Collections Name (by path)
 declare -a anscolnam=("community/general" "ansible/posix")
+declare -a anscolver=("9.5.3" "1.5.4")
 
 # Other Parameters and Globals
 myCwd="$(pwd)"
@@ -33,13 +34,13 @@ myDt="$(date +%s_%Y%b%d)"
 cd "${myDir}"
 anscolnum=${#anscolnam[@]}
 let anscollst=anscolnum-1
-echo -e "\nDOWNLOAD the following and PLACE in directory(${myDir}/extracted/):\n"
+echo -e "\nDOWNLOAD the following tarballs and PLACE (do NOT extract) into directory(${myDir}/tar/):\n"
 for i in $(seq 0 ${anscollst}) ; do
-	echo -e "   - https://galaxy.ansible.com/ui/repo/published/${anscolnam[$i]}"
+	echo -e "   - https://galaxy.ansible.com/ui/repo/published/${anscolnam[$i]}?version=${anscolver[$i]}"
 done
 echo -e "\nNote VERISION and MODIFY array(anscolver) in Kickstart %post script(${myDir}/ks/opt_${myOpt}-post.sh)\n"
-echo -e "\nExisting collections (and version) in (${myDir}/extracted/):\n"
-ls ${myDir}/extracted/
+echo -e "\nExisting collections (and version) in (${myDir}/tar/):\n"
+ls ${myDir}/tar/
 echo ""
 
 # Return to original directory

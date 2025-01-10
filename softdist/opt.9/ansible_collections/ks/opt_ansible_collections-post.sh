@@ -9,7 +9,7 @@ myOpt="ansible_collections"	# Tooling
 ADM_USR="1000:1000"		# Administrative User/Group
 # Ansible Collections Name (by path) and Version
 declare -a anscolnam=("community/general" "ansible/posix")
-declare -a anscolver=("8.6.0" "1.5.4")
+declare -a anscolver=("9.5.3" "1.5.4")
 
 ### Ensure ownership
 [ "${myOpt}" != "" ] && [ -d "/opt/${myOpt}" ] && [ "${ADM_USR}" != "" ] && /bin/chown -R ${ADM_USR} "/opt/${myOpt}"
@@ -30,7 +30,7 @@ for i in $(seq 0 ${anscollst}) ; do
 		mkdir -p "/opt/ansible.ks/${myOpt}/${anscolnam[$i]}"
 		# The basename for the packages is the same as the pathname, but slashes (/) are replaced by dashes (-)
 		anscolbas="$(echo ${anscolnam[$i]} | sed -e 's,/,-,g')"
-		tar xvf "/opt/${myOpt}/extracted/${anscolbas}-${anscolver[$i]}.tar.gz" -C "/opt/ansible.ks/${myOpt}/${anscolnam[$i]}"
+		tar xvf "/opt/${myOpt}/tar/${anscolbas}-${anscolver[$i]}.tar.gz" -C "/opt/ansible.ks/${myOpt}/${anscolnam[$i]}"
 	fi
 done
 
