@@ -122,8 +122,8 @@ Followed by a two (2) digit order, and a brief, three (3) letter abbreviation, w
 * `15lcl` - Locale includes (e.g., US Eastern or Central Timezone -- *FUTURE:* IP-based detection would require DHCP at install)
 * `20sec` - Security includes
 * `30net` - Network includes -- *IMPORTANT: the default network interface device is dynamically detected*
-* `40dev` - Device includes (e.g., basic storage) -- *IMPORTANT: the default storage device is dynamically detected* -- see detail in [Includes 40dev/45sto](README_inc_4Xxxx.md)
-* `45sto` - Storage includes (e.g., advanced storage specifics, like layout) -- see detail in [Includes 40dev/45sto](README_inc_4Xxxx.md)
+* `40dev` - Device includes (e.g., basic storage) -- *IMPORTANT: the default storage device is dynamically detected* -- see detail in [Kickstart Storage - Injected Functions and Include Files](README_inc_4Xxxx.md)
+* `45sto` - Storage includes (e.g., advanced storage specifics, like layout) -- see detail in [Kickstart Storage - Injected Functions and Include Files](README_inc_4Xxxx.md)
 * `60env` - Environment includes (e.g., system role package)
 * `65pkg` - Package includes
 * `80add` - Additional includes
