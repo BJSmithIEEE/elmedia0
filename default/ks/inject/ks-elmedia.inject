@@ -4,12 +4,22 @@
 #set -ox
 
 ## %pre - Globals
+export CPU_KS=""	# If CPU has Hypervisor flag (VM detected)
 export TLD_KS=""	# Top Level Directory (TLD) of Kickstart Media
 export DIR_KS=""	# Full Path to /ks Subdirectory under TLD
 export BLK_KS=""	# Backing Block Device of Kickstart Media
 export NET_KS=""	# 1st Network Device that is Up on System
 export DEV_KS=""	# 1st Block Device on System that is not Kickstart Media
 
+# Detect if CPU is hypervisor
+# NOTE: although it creates /tmp/pv.01.inc for no LUKS if VM, Kickstart does NOT have to use it (it's just there to use, if desired)
+grep -q '^flags\s\+[:]\s\+.*\s\+\(hypervisor\)\s\+.*$' /proc/cpuinfo 2>> /dev/null
+if [ $? -ne 0 ] ; then
+    export CPU_KS="hypervisor"
+    echo 'part pv.01 --fstype=lvmpv --size=40960 --grow --encrypted --luks-version=luks2 --passphrase=elmedia0! --pbkdf=pbkdf2' >> /tmp/pv.01.inc
+else
+    echo 'part pv.01 --fstype=lvmpv --size=40960 --grow' >> /tmp/pv.01.inc
+fi
 
 # Find kickstart media block device
 for d in /run/install/repo ; do
@@ -115,6 +125,7 @@ export NET_KS="$(fndSysDev 'class/net' 'em*' 'eno*' 'eth*' 'ens*' 'p*p*' 'enp*' 
 export DEV_KS="$(fndSysDev 'block' md127 md126 md125 md124 md123 md122 md121 md120 md119 md118 'md?' 'nvme?n?' 'vd?' 'sd?')"
 # DEBUG-PRE
 echo -e ""
+echo -e "[ELMEDIA-PRE]\tCPU Flag(s):\t${CPU_KS}"
 echo -e "[ELMEDIA-PRE]\tMedia TLD:\t${TLD_KS}"
 echo -e "[ELMEDIA-PRE]\tMedia /ks:\t${DIR_KS}"
 echo -e "[ELMEDIA-PRE]\tMedia Block:\t$BLK_KS"
