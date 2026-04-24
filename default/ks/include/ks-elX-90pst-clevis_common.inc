@@ -3,7 +3,7 @@
 
 ###	Common Clevis-LUKS Prep
 # Prep for various Clevis/LUKS options, including Dracut and GRUB2 modifications
-# also see 90pst-clevis_* includes (ks-elX-90pst-clevis_*.inc)
+# also see ks-elX-90pst-dracut_clevis_*.inc (none v. Tang v. TPM2 dracut settings)
 
 
 ## LUKS (example/modify) - /etc/crypttab
